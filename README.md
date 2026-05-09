@@ -2,7 +2,6 @@
 
 A full-stack personal finance tracker with AI-powered insights, secure JWT authentication, and real-time dashboard analytics. Built with the MERN stack (MongoDB, Express, React, Node.js) and enhanced with Redis caching, Mistral AI integration, and PDF report generation.
 
----
 
 ## ✨ Features
 
