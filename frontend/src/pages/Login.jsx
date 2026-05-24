@@ -25,14 +25,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 transition-all duration-500 opacity-100 animate-fadeIn">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8">
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-center gap-2 mb-4">
           <Wallet size={32} className="text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900">Budget Sathi</h1>
         </div>
         
-        <h2 className="text-xl font-semibold text-center mb-6">Welcome back</h2>
+        <h2 className="text-xl font-semibold text-center mb-8">Welcome!!!</h2>
         
         {error && (
           <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4 text-sm">
@@ -42,7 +42,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="email" className="block w-full text-left text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               id="email"
               name="email"
@@ -51,13 +51,14 @@ const Login = () => {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border-2 border-gray-300 rounded-full hover hover:border-purple-800 px-4 py-2
+              focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               placeholder="you@example.com"
             />
           </div>
           
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label htmlFor="password" className="block w-full text-left text-sm font-medium text-gray-700 mb-1">Password</label>
             <div className="relative">
               <input
                 id="password"
@@ -66,7 +67,8 @@ const Login = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full border-2 border-gray-300 rounded-full px-4 py-2 pr-10 focus:ring-2 
+                hover hover:border-purple-800 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your password"
               />
               <button
@@ -78,19 +80,18 @@ const Login = () => {
               </button>
             </div>
           </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            className="w-45 rounded-4xl bg-white border-3 border-purple-800 text-black py-2.5 font-medium hover:bg-purple-800 hover-opacity-80 hover:text-white transition-opacity mt-4 mb-6 duration-200 "
           >
             {loading ? 'Logging in...' : 'Log In'}
           </button>
         </form>
 
-        <p className="text-center mt-6 text-sm text-gray-600">
+        <p className="text-center mt-9 text-sm text-gray-800">
           Don't have an account?{' '}
-          <Link to="/register" className="text-primary-600 font-medium hover:underline">
+          <Link to="/register" className="text-black font-medium hover:underline">
             Create one
           </Link>
         </p>

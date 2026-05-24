@@ -28,12 +28,12 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-8">
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-center gap-2 mb-5">
           <Wallet size={32} className="text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900">Budget Sathi</h1>
         </div>
         
-        <h2 className="text-xl font-semibold text-center mb-6">Create your account</h2>
+        <h2 className="text-xl font-semibold text-center mb-6 mt-5">Create your account</h2>
         
         {error && (
           <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4 text-sm">
@@ -43,7 +43,7 @@ const Register = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label htmlFor="name" className="block text-sm text-left font-medium text-gray-700 mb-1">Full Name</label>
             <input
               id="name"
               name="name"
@@ -52,13 +52,13 @@ const Register = () => {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border-2 border-gray-300 hover hover:border-purple-800 rounded-full px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="John Doe"
             />
           </div>
           
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-left text-gray-700 mb-1">Email</label>
             <input
               id="email"
               name="email"  
@@ -67,13 +67,13 @@ const Register = () => {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border-2 border-gray-300 rounded-full hover hover:border-purple-800 px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="you@example.com"
             />
           </div>
           
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm text-left font-medium text-gray-700 mb-1">Password</label>
             <div className="relative">
               <input
                 id="password"
@@ -82,7 +82,7 @@ const Register = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full border-2 border-gray-300 rounded-full px-4 py-2 pr-10 hover hover:border-purple-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Min 8 characters"
               />
               <button
@@ -98,7 +98,7 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full bg-primary-600 text-white py-2.5 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            className="w-45 border-2 border-purple-800 bg-primary-600 text-purple-800 hover hover:bg-purple-800 hover:text-white rounded-full py-2.5 font-medium hover:bg-primary-700 transition-colors mb-6"
           >
             Create Account
           </button>
@@ -106,7 +106,7 @@ const Register = () => {
 
         <p className="text-center mt-6 text-sm text-gray-600">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary-600 font-medium hover:underline">
+          <Link to="/login" className="text-black font-medium hover:underline">
             Sign in
           </Link>
         </p>

@@ -1,35 +1,10 @@
-import { useState, useEffect } from 'react';
-import api from '../services/api';
 import { format } from 'date-fns';
 import { TrendingUp, TrendingDown, PiggyBank } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardRefresh } from '../hooks/useDashboardRefresh';
 
 const Dashboard = () => {
-  const [summary, setSummary] = useState(null);
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const [summaryRes, txnsRes] = await Promise.all([
-        api.get(`/transactions/summary/${currentYear}/${currentMonth}`),
-        api.get('/transactions?limit=5')
-      ]);
-      setSummary(summaryRes.data.data);
-      setRecentTransactions(txnsRes.data.data);
-    } catch (error) {
-      console.error('Dashboard fetch error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { summary, recentTransactions, loading } = useDashboardRefresh();
 
   const chartData = summary ? [
     { name: 'Income', value: summary.income, color: '#10b981' },
@@ -110,7 +85,7 @@ const Dashboard = () => {
                 paddingAngle={5}
                 dataKey="value"
               >
-                {chartData.map((entry, index) => (
+                {chartData.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
