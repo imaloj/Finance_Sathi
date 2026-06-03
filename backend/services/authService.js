@@ -134,3 +134,27 @@ export const logoutAll = async (userId) => {
   await User.findByIdAndUpdate(userId, { refreshTokens: [] });
   return true;
 };
+
+export const updateProfile = async (userId, updates) => {
+  const ALLOWED_FIELDS = ['name', 'currency', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal'];
+
+  const sanitized = Object.fromEntries(
+    Object.entries(updates).filter(([key]) => ALLOWED_FIELDS.includes(key))
+  );
+
+  if (Object.keys(sanitized).length === 0) {
+    throw Object.assign(new Error('No valid fields to update'), { statusCode: 400 });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: sanitized },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) {
+    throw Object.assign(new Error('User not found'), { statusCode: 404 });
+  }
+
+  return user;
+};

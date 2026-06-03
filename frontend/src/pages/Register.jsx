@@ -52,7 +52,7 @@ const Register = () => {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full border-2 border-gray-300 hover hover:border-purple-800 rounded-full px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border-2 border-gray-300 hover:border-purple-800 rounded-full px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="John Doe"
             />
           </div>
@@ -67,7 +67,7 @@ const Register = () => {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full border-2 border-gray-300 rounded-full hover hover:border-purple-800 px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border-2 border-gray-300 rounded-full hover:border-purple-800 px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="you@example.com"
             />
           </div>
@@ -82,7 +82,7 @@ const Register = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full border-2 border-gray-300 rounded-full px-4 py-2 pr-10 hover hover:border-purple-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full border-2 border-gray-300 rounded-full px-4 py-2 pr-10 hover:border-purple-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Min 8 characters"
               />
               <button
@@ -98,7 +98,7 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-45 border-2 border-purple-800 bg-primary-600 text-purple-800 hover hover:bg-purple-800 hover:text-white rounded-full py-2.5 font-medium hover:bg-primary-700 transition-colors mb-6"
+            className="w-full border-2 border-purple-800 bg-white text-purple-800 hover:bg-purple-800 hover:text-white rounded-full py-2.5 font-medium transition-colors mb-6"
           >
             Create Account
           </button>

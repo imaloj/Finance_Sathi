@@ -225,7 +225,7 @@ const fmt = (n) => typeof n === 'number' ? `Rs ${n.toLocaleString('en', { minimu
             <ul className="mt-3 text-sm text-gray-600 space-y-1">
               {report.insights.filter(i => i.toLowerCase().includes('income') || i.toLowerCase().includes('revenue') || i.toLowerCase().includes('earn')).slice(0, 2).map((insight, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-justify">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-green-500 rounded-full shrink-0" />
                   {insight}
                 </li>
               ))}
@@ -277,7 +277,7 @@ const fmt = (n) => typeof n === 'number' ? `Rs ${n.toLocaleString('en', { minimu
             <ul className="mt-3 text-sm text-gray-600 space-y-1">
               {report.insights.filter(i => i.toLowerCase().includes('expense') || i.toLowerCase().includes('spend')).slice(0, 2).map((insight, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-justify">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />
                   {insight}
                 </li>
               ))}
@@ -339,7 +339,7 @@ const fmt = (n) => typeof n === 'number' ? `Rs ${n.toLocaleString('en', { minimu
               <ul className="space-y-3">
                 {report.insights.map((insight, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-gray-700 text-sm text-justify">
-                    <span className="mt-1.5 w-2 h-2 bg-primary-500 rounded-full flex-shrink-0" />
+                    <span className="mt-1.5 w-2 h-2 bg-primary-600 rounded-full shrink-0" />
                     {insight}
                   </li>
                 ))}
