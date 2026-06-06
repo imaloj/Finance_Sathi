@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { format } from 'date-fns';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
@@ -21,16 +21,9 @@ const Transactions = () => {
     description: '',
     date: format(new Date(), 'yyyy-MM-dd')
   });
-  const [submitting, setSubmitting]= useState(false);
-  const {optimisticAddTransaction, triggerRefresh } = useDashboardRefresh();
+  const { optimisticAddTransaction, triggerRefresh } = useDashboardRefresh();
 
-  useEffect(() => {
-    if(filters.year && filters.year.length !== 4) return; // Basic validation for year input
-    if(filters.month && (filters.month < 1 || filters.month > 12)) return; // Basic validation for month input
-    fetchTransactions();
-  }, [filters]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -38,10 +31,17 @@ const Transactions = () => {
       });
       const response = await api.get(`/transactions?${params}`);
       setTransactions(response.data.data);
-    } catch (error) {
-      console.error('Fetch error:', error);
+    } catch (err) {
+      console.error('Fetch error:', err);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    if(filters.year && filters.year.length !== 4) return; // Basic validation for year input
+    if(filters.month && (filters.month < 1 || filters.month > 12)) return; // Basic validation for month input
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTransactions();
+  }, [filters, fetchTransactions]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,8 +60,8 @@ const Transactions = () => {
       fetchTransactions();
 
       triggerRefresh(); // Refresh dashboard data after adding/editing transaction
-    } catch (error) {
-      alert(error.response?.data?.message || 'Operation failed');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Operation failed');
     }
   };
 
@@ -71,7 +71,7 @@ const Transactions = () => {
       await api.delete(`/transactions/${id}`);
       fetchTransactions();
       triggerRefresh(); // Refresh dashboard data after deletion
-    } catch (error) {
+    } catch {
       alert('Delete failed');
     }
   };
@@ -119,7 +119,7 @@ const Transactions = () => {
         <select
           value={filters.type}
           onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
           <option value="">All Types</option>
           <option value="income">Income</option>
@@ -145,7 +145,7 @@ const Transactions = () => {
             setFilters({ ...filters, year: e.target.value });
           }
           }}
-          className="border border-gray-300 rounded-lg px-3 py-2 w-24 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="border border-gray-300 rounded-lg px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
       </div>
 
@@ -224,7 +224,7 @@ const Transactions = () => {
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value, category: '' })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
@@ -237,7 +237,7 @@ const Transactions = () => {
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Select category</option>
                   {CATEGORIES[formData.type].map(cat => (
@@ -254,7 +254,7 @@ const Transactions = () => {
                   required
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <div>
@@ -264,7 +264,7 @@ const Transactions = () => {
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <div>
@@ -274,7 +274,7 @@ const Transactions = () => {
                   maxLength="200"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Optional note..."
                 />
               </div>
@@ -282,7 +282,7 @@ const Transactions = () => {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover hover:border-primary-500 text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>

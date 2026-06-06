@@ -58,7 +58,7 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border-2 hover hover:border-purple-600 border-gray-200">
           <h3 className="text-lg font-semibold mb-4">Monthly Overview</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
@@ -72,7 +72,7 @@ const Dashboard = () => {
         </div>
 
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border-2 hover:border-purple-500 border-gray-200">
           <h3 className="text-lg font-semibold mb-4">Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -102,8 +102,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-
       {/* Recent Transactions */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">

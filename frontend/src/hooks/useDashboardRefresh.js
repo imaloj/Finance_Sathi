@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import api from '../services/api';
 
 // Custom event for cross-component communication
@@ -22,8 +22,8 @@ export const useDashboardRefresh = () => {
     transactionsRef.current = recentTransactions;
   }, [recentTransactions]);
 
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
+  const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
 
   const fetchDashboardData = useCallback(async (options = {}) => {
     const { silent = false, cacheBuster = false } = options;
@@ -96,6 +96,7 @@ export const useDashboardRefresh = () => {
 
   // Initial load
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDashboardData();
   }, [fetchDashboardData]);
 
