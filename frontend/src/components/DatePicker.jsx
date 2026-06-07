@@ -3,19 +3,12 @@ import { DayPicker } from 'react-day-picker';
 import { format, parse, isValid } from 'date-fns';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const MIN_DATE = new Date(2000, 0, 1); // 2000-01-01
-const MAX_DATE = new Date();           // today
+const MIN_DATE = new Date(2000, 0, 1);
+const MAX_DATE = new Date();
 
-/**
- * DatePicker — react-day-picker v10, Tailwind styled, dark-mode aware.
- *
- * Props:
- *   value     — string 'yyyy-MM-dd'
- *   onChange  — (value: string) => void
- *   required  — bool
- *   disabled  — bool
- *   className — extra classes on wrapper div
- */
+// Returns 3-letter uppercase weekday: SUN, MON, TUE...
+const formatWeekdayName = (date) =>
+  date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
 const DatePicker = ({ value, onChange, required = false, disabled = false, className = '' }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -94,6 +87,7 @@ const DatePicker = ({ value, onChange, required = false, disabled = false, class
             disabled={[{ before: MIN_DATE }, { after: MAX_DATE }]}
             defaultMonth={selected ?? MAX_DATE}
             showOutsideDays
+            formatters={{ formatWeekdayName }}
             components={{
               Chevron: ({ orientation }) =>
                 orientation === 'left'
@@ -101,7 +95,7 @@ const DatePicker = ({ value, onChange, required = false, disabled = false, class
                   : <ChevronRight size={14} />,
             }}
             classNames={{
-              root:            'w-[280px]',
+              root:            'w-[308px]',
               months:          'flex flex-col',
               month:           'space-y-2',
               month_caption:   'flex items-center justify-between px-1 mb-1',
@@ -121,12 +115,12 @@ const DatePicker = ({ value, onChange, required = false, disabled = false, class
               ].join(' '),
               month_grid:  'w-full border-collapse',
               weekdays:    'flex',
-              weekday:     'w-9 text-center text-xs font-medium text-gray-400 dark:text-gray-500 pb-1',
+              weekday:     'w-10 text-center text-xs font-semibold text-gray-400 dark:text-gray-500 pb-1 tracking-wide',
               weeks:       'flex flex-col gap-0.5',
               week:        'flex',
-              day:         'w-9 h-9 p-0 flex items-center justify-center',
+              day:         'w-10 h-9 p-0 flex items-center justify-center',
               day_button: [
-                'w-9 h-9 rounded-lg text-sm flex items-center justify-center',
+                'w-10 h-9 rounded-lg text-sm flex items-center justify-center',
                 'text-gray-700 dark:text-gray-200',
                 'hover:bg-primary-50 dark:hover:bg-primary-900/30',
                 'hover:text-primary-700 dark:hover:text-primary-300',
@@ -137,10 +131,10 @@ const DatePicker = ({ value, onChange, required = false, disabled = false, class
                 '[&>button]:hover:bg-primary-700',
                 '[&>button]:font-semibold',
               ].join(' '),
-              today: '[&>button]:font-bold [&>button]:text-primary-600 dark:[&>button]:text-primary-400',
-              outside: '[&>button]:text-gray-300 dark:[&>button]:text-gray-600 [&>button]:hover:bg-transparent',
+              today:    '[&>button]:font-bold [&>button]:text-primary-600 dark:[&>button]:text-primary-400',
+              outside:  '[&>button]:text-gray-300 dark:[&>button]:text-gray-600 [&>button]:hover:bg-transparent',
               disabled: '[&>button]:text-gray-300 dark:[&>button]:text-gray-600 [&>button]:cursor-not-allowed [&>button]:hover:bg-transparent',
-              hidden:  'invisible',
+              hidden:   'invisible',
             }}
           />
         </div>
