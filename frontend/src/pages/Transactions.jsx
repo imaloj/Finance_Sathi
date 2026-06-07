@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import useDashboardRefresh from '../hooks/useDashboardRefresh';
 import CustomSelect from '../components/CustomSelect';
+import DatePicker from '../components/DatePicker';
 
 const CATEGORIES = {
   income: ['salary', 'freelance', 'investment', 'gift', 'other_income'],
@@ -379,14 +380,10 @@ const Transactions = () => {
               {/* Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
-                <input
-                  type="date"
-                  required
-                  min="2000-01-01"
-                  max={format(new Date(), 'yyyy-MM-dd')}
+                <DatePicker
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className={inputClass}
+                  onChange={(val) => setFormData({ ...formData, date: val })}
+                  required
                 />
               </div>
 
