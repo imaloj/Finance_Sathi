@@ -1,9 +1,11 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Wallet } from 'lucide-react';
+import useTheme from '../hooks/useTheme';
+import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Wallet, Sun, Moon } from 'lucide-react';
 
 const Layout = () => {
   const { logout, user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
 
   const navItems = [
@@ -14,16 +16,26 @@ const Layout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex transition-colors duration-200">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-2 text-primary-600">
-            <Wallet  size={28} />
+      <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400">
+            <Wallet size={28} />
             <h1 className="text-xl font-bold">Budget Sathi</h1>
           </div>
+          {/* Dark mode toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
-        
+
+        {/* Nav */}
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -33,9 +45,9 @@ const Layout = () => {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-primary-50 text-primary-700 font-medium' 
-                    : 'text-gray-600 hover:bg-gray-50'
+                  isActive
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 <Icon size={20} />
@@ -45,14 +57,15 @@ const Layout = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
+        {/* User / Logout */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="mb-3 px-4">
-            <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-            <p className="text-xs text-gray-500">{user?.email}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
           </div>
           <button
             onClick={logout}
-            className="flex items-center gap-3 px-4 py-3 w-full text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex items-center gap-3 px-4 py-3 w-full text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
           >
             <LogOut size={20} />
             Logout

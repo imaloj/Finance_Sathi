@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #faf5ff;
   --color-primary-100: #f3e8ff;
@@ -21,4 +23,47 @@ body {
 
 #root {
   min-height: 100svh;
+}
+
+@keyframes dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-dropdown {
+  animation: dropdown 0.15s ease-out forwards;
+  transform-origin: top;
+}
+
+/* Custom scrollbar for dropdown — light mode */
+.dropdown-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.dropdown-scroll::-webkit-scrollbar-track {
+  background: #f3f4f6; /* gray-100 */
+  border-radius: 999px;
+}
+.dropdown-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db; /* gray-300 */
+  border-radius: 999px;
+}
+.dropdown-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af; /* gray-400 */
+}
+
+/* Dark mode overrides */
+.dark .dropdown-scroll::-webkit-scrollbar-track {
+  background: #374151; /* gray-700 */
+}
+.dark .dropdown-scroll::-webkit-scrollbar-thumb {
+  background: #4b5563; /* gray-600 */
+}
+.dark .dropdown-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6b7280; /* gray-500 */
 }
