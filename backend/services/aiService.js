@@ -5,20 +5,13 @@ import AIReport from '../models/AIReport.js';
 import User from '../models/User.js';
 import { getRedis } from '../config/redis.js';
 
-// ============================================
-// MISTRAL CLIENT SETUP
-// ============================================
+
 
 const mistral = new Mistral({
   apiKey: process.env.MISTRAL_API_KEY,
 });
 
 const MODEL = 'mistral-small-latest'; // Free tier eligible
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
 const getMonthlyData = async (userId, month, year) => {
   const result = await Transaction.aggregate([
     { 

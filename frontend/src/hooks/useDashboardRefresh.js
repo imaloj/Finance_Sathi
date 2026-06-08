@@ -4,42 +4,39 @@ import api from '../services/api';
 // Custom event for cross-component communication
 const DASHBOARD_REFRESH_EVENT = 'dashboard:refresh';
 
-export const useDashboardRefresh = () => {
+export const useDashboardRefresh = (selectedMonth) => {
   const [summary, setSummary] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Use ref to track latest data for optimistic updates
   const summaryRef = useRef(summary);
   const transactionsRef = useRef(recentTransactions);
-  
-  useEffect(() => {
-    summaryRef.current = summary;
-  }, [summary]);
-  
-  useEffect(() => {
-    transactionsRef.current = recentTransactions;
-  }, [recentTransactions]);
 
-  const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
+  useEffect(() => { summaryRef.current = summary; }, [summary]);
+  useEffect(() => { transactionsRef.current = recentTransactions; }, [recentTransactions]);
+
   const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
+
+  // Use the passed-in month if provided, otherwise fall back to current month
+  const activeMonth = selectedMonth ?? currentMonth;
 
   const fetchDashboardData = useCallback(async (options = {}) => {
     const { silent = false, cacheBuster = false } = options;
-    
+
     if (!silent) setLoading(true);
     setError('');
-    
+
     try {
-      // Add cache-busting timestamp to force fresh data
       const timestamp = cacheBuster ? `?_t=${Date.now()}` : '';
-      
+
       const [summaryRes, txnsRes] = await Promise.all([
-        api.get(`/transactions/summary/${currentYear}/${currentMonth}${timestamp}`),
-        api.get(`/transactions?limit=5${cacheBuster ? `&_t=${Date.now()}` : ''}`)
+        api.get(`/transactions/summary/${currentYear}/${activeMonth}${timestamp}`),
+        api.get(`/transactions?limit=5&month=${activeMonth}&year=${currentYear}${cacheBuster ? `&_t=${Date.now()}` : ''}`)
       ]);
-      
+
       setSummary(summaryRes.data.data);
       setRecentTransactions(txnsRes.data.data);
     } catch (err) {
@@ -48,26 +45,19 @@ export const useDashboardRefresh = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [currentMonth, currentYear]);
+  }, [currentYear, activeMonth]);
 
   // Optimistic update: Add transaction to UI immediately
   const optimisticAddTransaction = useCallback((transaction) => {
-    // Update recent transactions list
-    setRecentTransactions(prev => {
-      const updated = [transaction, ...prev].slice(0, 5);
-      return updated;
-    });
-    
-    // Update summary totals optimistically
+    setRecentTransactions(prev => [transaction, ...prev].slice(0, 5));
+
     setSummary(prev => {
       if (!prev) return prev;
       const amount = parseFloat(transaction.amount) || 0;
       const updated = { ...prev };
-      
       if (transaction.type === 'income') updated.income += amount;
       else if (transaction.type === 'expense') updated.expense += amount;
       else if (transaction.type === 'saving') updated.saving += amount;
-      
       updated.net = updated.income - updated.expense - updated.saving;
       return updated;
     });
@@ -76,15 +66,11 @@ export const useDashboardRefresh = () => {
   // Optimistic update: Remove transaction from UI
   const optimisticRemoveTransaction = useCallback((transactionId) => {
     setRecentTransactions(prev => prev.filter(t => t._id !== transactionId));
-    // Summary will be corrected on next fetch
   }, []);
 
   // Listen for refresh events from other components
   useEffect(() => {
-    const handleRefresh = () => {
-      fetchDashboardData({ silent: true, cacheBuster: true });
-    };
-    
+    const handleRefresh = () => fetchDashboardData({ silent: true, cacheBuster: true });
     window.addEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
     return () => window.removeEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
   }, [fetchDashboardData]);
@@ -94,13 +80,13 @@ export const useDashboardRefresh = () => {
     window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
   }, []);
 
-  // Initial load
+  // Initial load + re-fetch when activeMonth changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  // Auto-refresh every 30 seconds (for multi-tab sync)
+  // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchDashboardData({ silent: true });
@@ -118,7 +104,8 @@ export const useDashboardRefresh = () => {
     optimisticRemoveTransaction,
     triggerRefresh,
     currentMonth,
-    currentYear
+    currentYear,
+    activeMonth,
   };
 };
 

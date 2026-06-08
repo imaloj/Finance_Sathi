@@ -1,8 +1,15 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { TrendingUp, TrendingDown, PiggyBank, Target } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardRefresh } from '../hooks/useDashboardRefresh';
 import { useAuth } from '../context/AuthContext';
+import CustomSelect from '../components/CustomSelect';
+
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1,
+  label: format(new Date(2024, i, 1), 'MMMM'),
+}));
 
 const StatCard = ({ title, amount, icon: Icon, color, bg }) => (
   <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -60,7 +67,8 @@ const BudgetBar = ({ label, current, goal, color, higherIsBetter }) => {
 };
 
 const Dashboard = () => {
-  const { summary, recentTransactions, loading } = useDashboardRefresh();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const { summary, recentTransactions, loading, currentYear, activeMonth } = useDashboardRefresh(selectedMonth);
   const { user } = useAuth();
 
   const chartData = summary ? [
@@ -75,9 +83,22 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
-        <p className="text-gray-500 dark:text-gray-400">{format(new Date(), 'MMMM yyyy')}</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            {format(new Date(currentYear, activeMonth - 1), 'MMMM yyyy')}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500 dark:text-gray-400">Viewing:</span>
+          <CustomSelect
+            value={selectedMonth}
+            onChange={(val) => setSelectedMonth(val)}
+            options={MONTH_OPTIONS}
+            className="w-40"
+          />
+        </div>
       </div>
 
       {/* Stats Cards */}
