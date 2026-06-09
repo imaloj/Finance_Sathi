@@ -75,7 +75,7 @@ export const refreshAccessToken = async (refreshToken) => {
   try {
     decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
   } catch (err) {
-    // Preserve original JWT error name for frontend handling
+
     throw Object.assign(
       new Error(err.message || 'Invalid or expired refresh token'), 
       { statusCode: 401, name: err.name }
@@ -136,7 +136,7 @@ export const logoutAll = async (userId) => {
 };
 
 export const updateProfile = async (userId, updates) => {
-  const ALLOWED_FIELDS = ['name', 'currency', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal'];
+  const ALLOWED_FIELDS = ['name', 'currency', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance'];
 
   const sanitized = Object.fromEntries(
     Object.entries(updates).filter(([key]) => ALLOWED_FIELDS.includes(key))
@@ -154,6 +154,12 @@ export const updateProfile = async (userId, updates) => {
 
   if (!user) {
     throw Object.assign(new Error('User not found'), { statusCode: 404 });
+  }
+
+  // Invalidate running balance cache if initialBalance was updated
+  if ('initialBalance' in sanitized) {
+    const redis = getRedis();
+    await redis.del(`running_balance:${userId}`);
   }
 
   return user;

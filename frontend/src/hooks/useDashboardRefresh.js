@@ -7,6 +7,7 @@ const DASHBOARD_REFRESH_EVENT = 'dashboard:refresh';
 export const useDashboardRefresh = (selectedMonth) => {
   const [summary, setSummary] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
+  const [runningBalance, setRunningBalance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -32,13 +33,15 @@ export const useDashboardRefresh = (selectedMonth) => {
     try {
       const timestamp = cacheBuster ? `?_t=${Date.now()}` : '';
 
-      const [summaryRes, txnsRes] = await Promise.all([
+      const [summaryRes, txnsRes, balanceRes] = await Promise.all([
         api.get(`/transactions/summary/${currentYear}/${activeMonth}${timestamp}`),
-        api.get(`/transactions?limit=5&month=${activeMonth}&year=${currentYear}${cacheBuster ? `&_t=${Date.now()}` : ''}`)
+        api.get(`/transactions?limit=5&month=${activeMonth}&year=${currentYear}${cacheBuster ? `&_t=${Date.now()}` : ''}`),
+        api.get('/transactions/running-balance')
       ]);
 
       setSummary(summaryRes.data.data);
       setRecentTransactions(txnsRes.data.data);
+      setRunningBalance(balanceRes.data.data.runningBalance);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load dashboard data');
@@ -97,6 +100,7 @@ export const useDashboardRefresh = (selectedMonth) => {
   return {
     summary,
     recentTransactions,
+    runningBalance,
     loading,
     error,
     fetchDashboardData,

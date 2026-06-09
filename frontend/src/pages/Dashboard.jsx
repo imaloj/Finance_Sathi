@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { TrendingUp, TrendingDown, PiggyBank, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, PiggyBank, Target, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardRefresh } from '../hooks/useDashboardRefresh';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from '../components/CustomSelect';
+import SpendingTrends from '../components/SpendingTrends';
 
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   value: i + 1,
@@ -68,7 +69,7 @@ const BudgetBar = ({ label, current, goal, color, higherIsBetter }) => {
 
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const { summary, recentTransactions, loading, currentYear, activeMonth } = useDashboardRefresh(selectedMonth);
+  const { summary, recentTransactions, runningBalance, loading, currentYear, activeMonth } = useDashboardRefresh(selectedMonth);
   const { user } = useAuth();
 
   const chartData = summary ? [
@@ -133,6 +134,29 @@ const Dashboard = () => {
         />
       </div>
 
+      {/* Running Balance */}
+      {runningBalance !== null && (
+        <div className={`flex items-center justify-between px-6 py-4 rounded-xl border ${
+          runningBalance >= 0
+            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
+            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${runningBalance >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-red-100 dark:bg-red-900/40'}`}>
+              <Wallet size={20} className={runningBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Running Balance</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total accumulated across all time</p>
+            </div>
+          </div>
+          <p className={`text-2xl font-bold ${runningBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+            ₹{Math.abs(runningBalance).toLocaleString()}
+            {runningBalance < 0 && <span className="text-sm ml-1">deficit</span>}
+          </p>
+        </div>
+      )}
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border-2 hover:border-purple-600 border-gray-200 dark:border-gray-700">
@@ -178,6 +202,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Spending Trends */}
+      <SpendingTrends />
 
       {/* Budget Progress */}
       {(user?.monthlyExpenseBudget > 0 || user?.monthlySavingGoal > 0 || user?.monthlyIncomeGoal > 0) && (

@@ -35,6 +35,26 @@ router.get('/summary/:year/:month', async (req, res, next) => {
   }
 });
 
+router.get('/trends', async (req, res, next) => {
+  try {
+    const months = Math.min(parseInt(req.query.months) || 6, 12);
+    const trends = await transactionService.getSpendingTrends(req.user._id, months);
+    res.status(200).json({ success: true, data: trends });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/running-balance', async (req, res, next) => {
+  try {
+    const user = req.user;
+    const balance = await transactionService.getRunningBalance(user._id, user.initialBalance || 0);
+    res.status(200).json({ success: true, data: { runningBalance: balance } });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.put('/:id', validate(transactionValidators.update), async (req, res, next) => {
   try {
     const transaction = await transactionService.updateTransaction(req.user._id, req.params.id, req.body);

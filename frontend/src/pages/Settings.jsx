@@ -10,7 +10,8 @@ const Settings = () => {
     currency: user?.currency || 'NPR',
     monthlyIncomeGoal: user?.monthlyIncomeGoal || '',
     monthlyExpenseBudget: user?.monthlyExpenseBudget || '',
-    monthlySavingGoal: user?.monthlySavingGoal || ''
+    monthlySavingGoal: user?.monthlySavingGoal || '',
+    initialBalance: user?.initialBalance || ''
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -106,6 +107,24 @@ const Settings = () => {
               placeholder="0"
             />
           </div>
+        </div>
+
+        {/* Initial Balance */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Initial Balance
+          </label>
+          <input
+            type="number"
+            min="0"
+            value={formData.initialBalance}
+            onChange={(e) => setFormData({ ...formData, initialBalance: e.target.value })}
+            className={inputClass}
+            placeholder="0"
+          />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            Your account balance before you started using Budget Sathi. Used to calculate your running balance.
+          </p>
         </div>
 
         <button

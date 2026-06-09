@@ -21,12 +21,8 @@ import { logger } from './utils/logger.js';
 dotenv.config();
 if (!process.env.MISTRAL_API_KEY || process.env.MISTRAL_API_KEY.length < 10) {
   console.error('❌ MISTRAL_API_KEY is missing or invalid. Get one at https://console.mistral.ai/');
-  console.error('   Current value:', process.env.MISTRAL_API_KEY ? `"${process.env.MISTRAL_API_KEY.substring(0, 5)}..."` : 'undefined');
   process.exit(1);
 }
-
-// Debug: show first 8 chars to confirm key is loaded (safe — doesn't expose full key)
-console.log('✓ MISTRAL_API_KEY loaded:', process.env.MISTRAL_API_KEY.substring(0, 8) + '...');
 
 const app = express();
 const PORT = process.env.PORT || 5000; // Default to 5000 if PORT is not set

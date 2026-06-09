@@ -42,6 +42,11 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  initialBalance: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   refreshTokens: [{
     token: String,
     createdAt: { type: Date, default: Date.now },
