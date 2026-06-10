@@ -2,9 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { format } from 'date-fns';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
-import useDashboardRefresh from '../hooks/useDashboardRefresh';
 import CustomSelect from '../components/CustomSelect';
 import DatePicker from '../components/DatePicker';
+
+// Lightweight helpers — avoids spinning up the full useDashboardRefresh hook
+// which would fire 3 extra API calls on every Transactions page visit
+const DASHBOARD_REFRESH_EVENT = 'dashboard:refresh';
+const triggerDashboardRefresh = () =>
+  window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
 
 const CATEGORIES = {
   income: ['salary', 'freelance', 'investment', 'gift', 'other_income'],
@@ -66,7 +71,6 @@ const Transactions = () => {
     date: format(new Date(), 'yyyy-MM-dd'),
   });
 
-  const { optimisticAddTransaction, triggerRefresh } = useDashboardRefresh();
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -99,13 +103,14 @@ const Transactions = () => {
         await api.put(`/transactions/${editingId}`, formData);
       } else {
         const response = await api.post('/transactions', formData);
-        optimisticAddTransaction(response.data.data);
+        // Optimistically notify dashboard via custom event
+        window.dispatchEvent(new CustomEvent('dashboard:optimistic-add', { detail: response.data.data }));
       }
       setShowModal(false);
       setEditingId(null);
       resetForm();
       await fetchTransactions();
-      triggerRefresh();
+      triggerDashboardRefresh();
     } catch (err) {
       alert(err.response?.data?.message || 'Operation failed');
     } finally {
@@ -119,7 +124,7 @@ const Transactions = () => {
     try {
       await api.delete(`/transactions/${id}`);
       await fetchTransactions();
-      triggerRefresh();
+      triggerDashboardRefresh();
     } catch {
       alert('Delete failed');
     } finally {

@@ -74,8 +74,27 @@ export const useDashboardRefresh = (selectedMonth) => {
   // Listen for refresh events from other components
   useEffect(() => {
     const handleRefresh = () => fetchDashboardData({ silent: true, cacheBuster: true });
+    const handleOptimisticAdd = (e) => {
+      const transaction = e.detail;
+      if (!transaction) return;
+      setRecentTransactions(prev => [transaction, ...prev].slice(0, 5));
+      setSummary(prev => {
+        if (!prev) return prev;
+        const amount = parseFloat(transaction.amount) || 0;
+        const updated = { ...prev };
+        if (transaction.type === 'income') updated.income += amount;
+        else if (transaction.type === 'expense') updated.expense += amount;
+        else if (transaction.type === 'saving') updated.saving += amount;
+        updated.net = updated.income - updated.expense - updated.saving;
+        return updated;
+      });
+    };
     window.addEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
-    return () => window.removeEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
+    window.addEventListener('dashboard:optimistic-add', handleOptimisticAdd);
+    return () => {
+      window.removeEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
+      window.removeEventListener('dashboard:optimistic-add', handleOptimisticAdd);
+    };
   }, [fetchDashboardData]);
 
   // Trigger refresh event for other components

@@ -1,11 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import useTheme from '../hooks/useTheme';
-import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Wallet, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Wallet } from 'lucide-react';
+import ThemeSwitch from './ThemeSwitch';
 
 const Layout = () => {
   const { logout, user } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
 
   const navItems = [
@@ -26,13 +25,7 @@ const Layout = () => {
             <h1 className="text-xl font-bold">Budget Sathi</h1>
           </div>
           {/* Dark mode toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <ThemeSwitch />
         </div>
 
         {/* Nav */}

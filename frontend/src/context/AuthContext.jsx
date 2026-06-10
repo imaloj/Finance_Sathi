@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,10 +8,13 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasUserRef = useRef(false);
 
-  // ✅ Always check auth on app load (cookies handle session)
+  // Only fetch user on app load if we don't already have one (page refresh case)
   useEffect(() => {
-    fetchUser();
+    if (!hasUserRef.current) {
+      fetchUser();
+    }
   }, []);
 
   const fetchUser = async () => {
@@ -20,7 +23,7 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data.data);
     } catch (error) {
       if (error.response?.status === 401) {
-        setUser(null); // not logged in
+        setUser(null);
       } else {
         console.error('Auth check failed:', error);
       }
@@ -29,22 +32,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Login (cookies will be set automatically by backend)
+  // ✅ Login — user data comes from login response, no extra /me call needed
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
+      hasUserRef.current = true;
       setUser(response.data.data.user);
+      setLoading(false);
       navigate('/');
     } catch (error) {
       throw error;
     }
   };
 
-  // ✅ Register
+  // ✅ Register — same pattern
   const register = async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
+      hasUserRef.current = true;
       setUser(response.data.data.user);
+      setLoading(false);
       navigate('/');
     } catch (error) {
       throw error;
