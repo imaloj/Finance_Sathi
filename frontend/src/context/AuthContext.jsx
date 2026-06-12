@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
 
@@ -10,13 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const hasUserRef = useRef(false);
 
-  // Only fetch user on app load if we don't already have one (page refresh case)
-  useEffect(() => {
-    if (!hasUserRef.current) {
-      fetchUser();
-    }
-  }, []);
-
+  // Defined before useEffect so it's in scope
   const fetchUser = async () => {
     try {
       const response = await api.get('/auth/me');
@@ -32,33 +27,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Login — user data comes from login response, no extra /me call needed
+  // Only fetch user on app load if we don't already have one (page refresh case)
+  useEffect(() => {
+    if (!hasUserRef.current) {
+      fetchUser();
+    }
+  }, []);
+
+  // Login — user data comes from login response, no extra /me call needed
   const login = async (email, password) => {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      hasUserRef.current = true;
-      setUser(response.data.data.user);
-      setLoading(false);
-      navigate('/');
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/auth/login', { email, password });
+    hasUserRef.current = true;
+    setUser(response.data.data.user);
+    setLoading(false);
+    toast.success('Login Successful!!!', { duration: 3000, icon: '✅' });
+    navigate('/');
   };
 
-  // ✅ Register — same pattern
+  // Register — same pattern
   const register = async (userData) => {
-    try {
-      const response = await api.post('/auth/register', userData);
-      hasUserRef.current = true;
-      setUser(response.data.data.user);
-      setLoading(false);
-      navigate('/');
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/auth/register', userData);
+    hasUserRef.current = true;
+    setUser(response.data.data.user);
+    setLoading(false);
+    navigate('/');
   };
 
-  // ✅ Logout (backend clears cookies)
+  // Logout
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -78,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         loading,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
       }}
     >
       {children}
@@ -86,4 +81,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export default AuthContext;
+

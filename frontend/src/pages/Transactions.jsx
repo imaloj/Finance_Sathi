@@ -2,26 +2,25 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { format } from 'date-fns';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import CustomSelect from '../components/CustomSelect';
 import DatePicker from '../components/DatePicker';
 
-// Lightweight helpers — avoids spinning up the full useDashboardRefresh hook
-// which would fire 3 extra API calls on every Transactions page visit
 const DASHBOARD_REFRESH_EVENT = 'dashboard:refresh';
 const triggerDashboardRefresh = () =>
   window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
 
 const CATEGORIES = {
-  income: ['salary', 'freelance', 'investment', 'gift', 'other_income'],
-  expense: ['food', 'transport', 'housing', 'utilities', 'healthcare', 'entertainment', 'shopping', 'education', 'personal', 'other_expense'],
-  saving: ['emergency_fund', 'retirement', 'investment', 'goal_based', 'other_saving'],
+  Income: ['Salary', 'Freelance', 'Investment', 'Gift', 'Other_Income'],
+  Expense: ['Food', 'Transport', 'Housing', 'Utilities', 'Healthcare', 'Entertainment', 'Shopping', 'Education', 'Personal', 'Other_Expense'],
+  Saving: ['Emergency_Fund', 'Retirement', 'Investment', 'Goal_Based', 'Other_Saving'],
 };
 
 // Static option arrays for CustomSelect
 const TYPE_OPTIONS = [
-  { value: 'income',  label: 'Income' },
-  { value: 'expense', label: 'Expense' },
-  { value: 'saving',  label: 'Saving' },
+  { value: 'Income',  label: 'Income' },
+  { value: 'Expense', label: 'Expense' },
+  { value: 'Saving',  label: 'Saving' },
 ];
 
 const FILTER_TYPE_OPTIONS = [
@@ -64,7 +63,7 @@ const Transactions = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [filters, setFilters] = useState({ month: '', year: '', type: '' });
   const [formData, setFormData] = useState({
-    type: 'expense',
+    type: 'Expense',
     amount: '',
     category: '',
     description: '',
@@ -86,9 +85,9 @@ const Transactions = () => {
   }, [filters]);
 
   useEffect(() => {
-    // Validate year (must be 4 digits if set, and within valid range)
+
     if (filters.year && (filters.year.length !== 4 || getYearError(filters.year))) return;
-    // Validate month (1–12 if set) — parse to number first
+ 
     const m = parseInt(filters.month);
     if (filters.month && (m < 1 || m > 12)) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -103,7 +102,7 @@ const Transactions = () => {
         await api.put(`/transactions/${editingId}`, formData);
       } else {
         const response = await api.post('/transactions', formData);
-        // Optimistically notify dashboard via custom event
+    
         window.dispatchEvent(new CustomEvent('dashboard:optimistic-add', { detail: response.data.data }));
       }
       setShowModal(false);
@@ -111,8 +110,9 @@ const Transactions = () => {
       resetForm();
       await fetchTransactions();
       triggerDashboardRefresh();
+      toast.success(editingId ? 'Transaction updated' : 'Transaction added');
     } catch (err) {
-      alert(err.response?.data?.message || 'Operation failed');
+      toast.error(err.response?.data?.message || 'Operation failed');
     } finally {
       setSubmitting(false);
     }
@@ -125,8 +125,9 @@ const Transactions = () => {
       await api.delete(`/transactions/${id}`);
       await fetchTransactions();
       triggerDashboardRefresh();
+      toast.success('Transaction deleted');
     } catch {
-      alert('Delete failed');
+      toast.error('Delete failed');
     } finally {
       setDeletingId(null);
     }
@@ -146,7 +147,7 @@ const Transactions = () => {
 
   const resetForm = () => {
     setFormData({
-      type: 'expense',
+      type: 'Expense',
       amount: '',
       category: '',
       description: '',
@@ -403,6 +404,15 @@ const Transactions = () => {
                   className={inputClass}
                   placeholder="Optional note..."
                 />
+                <p className={`text-xs mt-1 text-right transition-colors ${
+                  formData.description.length >= 180
+                    ? 'text-red-500 dark:text-red-400'
+                    : formData.description.length >= 150
+                    ? 'text-yellow-500 dark:text-yellow-400'
+                    : 'text-gray-400 dark:text-gray-500'
+                }`}>
+                  {formData.description.length}/200
+                </p>
               </div>
 
               {/* Actions */}

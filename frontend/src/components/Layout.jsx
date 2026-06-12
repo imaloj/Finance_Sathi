@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import useAuth from '../hooks/useAuth';
 import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Wallet } from 'lucide-react';
 import ThemeSwitch from './ThemeSwitch';
 

@@ -3,8 +3,7 @@ import { format } from 'date-fns';
 import { TrendingUp, TrendingDown, PiggyBank, Target, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDashboardRefresh } from '../hooks/useDashboardRefresh';
-import { useAuth } from '../context/AuthContext';
-import CustomSelect from '../components/CustomSelect';
+import useAuth from '../hooks/useAuth';import CustomSelect from '../components/CustomSelect';
 import SpendingTrends from '../components/SpendingTrends';
 
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
