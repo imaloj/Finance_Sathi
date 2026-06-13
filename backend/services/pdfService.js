@@ -1,9 +1,19 @@
 import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Embed logo as base64 so Puppeteer can render it without a running server
+const logoPath = join(__dirname, '../../frontend/public/BudgetSathi.png');
+let logoBase64 = '';
+try {
+  logoBase64 = `data:image/png;base64,${readFileSync(logoPath).toString('base64')}`;
+} catch {
+  // Logo file not found — will fall back to text header
+}
 
 const generateHTML = (data) => {
   const { user, report, summary, month, year, prevMonthData } = data;
@@ -197,7 +207,10 @@ const generateHTML = (data) => {
 <body>
 
   <div class="header">
-    <div class="logo">💰 Budget Sathi</div>
+    ${logoBase64
+      ? `<img src="${logoBase64}" alt="Budget Sathi" style="height:60px;width:auto;margin-bottom:8px;" />`
+      : `<div class="logo">💰 Budget Sathi</div>`
+    }
     <div class="subtitle">Your Personal Financial Companion</div>
   </div>
 

@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import MonthlyReport from './pages/MonthlyReport';
 import Settings from './pages/Settings';
+import AppLoader from './components/AppLoader';
 
 const ThemedToaster = () => {
   const { isDark } = useTheme();
@@ -53,36 +54,35 @@ const ThemedToaster = () => {
 };
 
 
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  return isAuthenticated ? children : <Navigate to="/login" />;
-};
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/" /> : children;
-};
 function App() {
   return (
-      <Router>
-        <AuthProvider>
-        <ThemedToaster />
-        <Routes>
-          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Layout />
-            </PrivateRoute>
-          }>
-            <Route index element={<Dashboard />} />
-            <Route path="transactions" element={<Transactions />} />
-            <Route path="reports" element={<MonthlyReport />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
+    <Router>
+      <AuthProvider>
+        <AppRoutes />
       </AuthProvider>
     </Router>
+  );
+}
+
+function AppRoutes() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return <AppLoader />;
+
+  return (
+    <>
+      <ThemedToaster />
+      <Routes>
+        <Route path="/login"    element={!isAuthenticated ? <Login />    : <Navigate to="/" />} />
+        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+        <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
+          <Route index element={<Dashboard />} />
+          <Route path="transactions" element={<Transactions />} />
+          <Route path="reports"      element={<MonthlyReport />} />
+          <Route path="settings"     element={<Settings />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

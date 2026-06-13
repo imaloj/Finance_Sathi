@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Wallet } from 'lucide-react';
+import { LayoutDashboard, Receipt, PieChart, Settings, LogOut } from 'lucide-react';
 import ThemeSwitch from './ThemeSwitch';
 
 const Layout = () => {
@@ -19,10 +19,9 @@ const Layout = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400">
-            <Wallet size={28} />
-            <h1 className="text-xl font-bold">Budget Sathi</h1>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/BudgetSathi.png" alt="Budget Sathi" className="h-25 w-auto" />
           </div>
           {/* Dark mode toggle */}
           <ThemeSwitch />

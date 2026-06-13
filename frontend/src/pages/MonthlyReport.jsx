@@ -122,9 +122,12 @@ const MonthlyReport = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Page Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Financial Report</h2>
-        <p className="text-gray-500 dark:text-gray-400">Generate and download your monthly financial summary</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Financial Report</h2>
+          <p className="text-gray-500 dark:text-gray-400">Generate and download your monthly financial summary</p>
+        </div>
+        <img src="/BudgetSathi.png" alt="Budget Sathi" className="h-10 w-auto" />
       </div>
 
       {/* Controls */}

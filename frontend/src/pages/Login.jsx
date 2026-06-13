@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-import { Wallet, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -27,8 +27,7 @@ const Login = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-200">
       <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-lg p-8">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <Wallet size={32} className="text-primary-600 dark:text-primary-400" />
-          <h1 className="text-2xl font-bold text-purple-600 dark:text-purple-400">Budget Sathi</h1>
+          <img src="/BudgetSathi.png" alt="Budget Sathi" className="h-25 w-auto" />
         </div>
 
         <h2 className="text-xl font-semibold text-center mb-8 text-gray-900 dark:text-gray-100">Welcome!!!</h2>

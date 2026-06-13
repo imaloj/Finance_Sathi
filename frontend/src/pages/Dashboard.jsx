@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { TrendingUp, TrendingDown, PiggyBank, Target, Wallet } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell as RechartsCell
+} from 'recharts';
 import { useDashboardRefresh } from '../hooks/useDashboardRefresh';
-import useAuth from '../hooks/useAuth';import CustomSelect from '../components/CustomSelect';
+import useAuth from '../hooks/useAuth';
+import useTheme from '../hooks/useTheme';
+import CustomSelect from '../components/CustomSelect';
 import SpendingTrends from '../components/SpendingTrends';
 
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -66,18 +71,60 @@ const BudgetBar = ({ label, current, goal, color, higherIsBetter }) => {
   );
 };
 
+const CustomBarTooltip = ({ active, payload, label, tooltipBg, tooltipBorder, tooltipText }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: tooltipBg, border: `1px solid ${tooltipBorder}`, color: tooltipText }}
+      className="rounded-xl px-4 py-3 shadow-xl text-sm">
+      <p className="font-semibold mb-1">{label}</p>
+      <p style={{ color: payload[0].payload.color }} className="font-bold text-base">
+        ₹{Number(payload[0].value).toLocaleString()}
+      </p>
+    </div>
+  );
+};
+
+const PieCenterLabel = ({ activePieIndex, chartData, summary, axisColor }) => {
+  const cx = '50%', cy = '50%';
+  const active = activePieIndex !== null ? chartData[activePieIndex] : null;
+  return (
+    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle">
+      <tspan x={cx} dy="-0.4em" fontSize="11" fill={axisColor}>
+        {active ? active.name : 'Net'}
+      </tspan>
+      <tspan x={cx} dy="1.4em" fontSize="15" fontWeight="700"
+        fill={active ? active.color : (summary?.net >= 0 ? '#10b981' : '#ef4444')}>
+        ₹{(active ? active.value : Math.abs(summary?.net || 0)).toLocaleString()}
+      </tspan>
+    </text>
+  );
+};
+
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [activePieIndex, setActivePieIndex] = useState(null);
   const { summary, recentTransactions, runningBalance, loading, currentYear, activeMonth } = useDashboardRefresh(selectedMonth);
   const { user } = useAuth();
-
-  const chartData = summary ? [
-    { name: 'Income', value: summary.income, color: '#10b981' },
-    { name: 'Expense', value: summary.expense, color: '#ef4444' },
-    { name: 'Saving', value: summary.saving, color: '#3b82f6' }
-  ] : [];
+  const { isDark } = useTheme();
 
   const COLORS = ['#10b981', '#ef4444', '#3b82f6'];
+  const GRADIENTS = [
+    { id: 'gradIncome',  start: '#34d399', end: '#059669' },
+    { id: 'gradExpense', start: '#f87171', end: '#dc2626' },
+    { id: 'gradSaving',  start: '#60a5fa', end: '#2563eb' },
+  ];
+
+  const chartData = summary ? [
+    { name: 'Income',  value: summary.income,  color: COLORS[0] },
+    { name: 'Expense', value: summary.expense, color: COLORS[1] },
+    { name: 'Saving',  value: summary.saving,  color: COLORS[2] },
+  ] : [];
+
+  const gridColor  = isDark ? '#374151' : '#e5e7eb';
+  const axisColor  = isDark ? '#9ca3af' : '#6b7280';
+  const tooltipBg  = isDark ? '#1f2937' : '#ffffff';
+  const tooltipBorder = isDark ? '#374151' : '#e5e7eb';
+  const tooltipText = isDark ? '#f3f4f6' : '#111827';
 
   if (loading) return <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading dashboard...</div>;
 
@@ -158,44 +205,94 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border-2 hover:border-purple-600 border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Monthly Overview</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => `Rs ${value.toLocaleString()}`} />
-              <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
+        {/* Bar Chart */}
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">Monthly Overview</h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">Income · Expenses · Savings</p>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chartData} barCategoryGap="35%" barGap={4}>
+              <defs>
+                {GRADIENTS.map(g => (
+                  <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor={g.start} stopOpacity={1} />
+                    <stop offset="100%" stopColor={g.end}   stopOpacity={0.85} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="4 4" stroke={gridColor} vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: axisColor, fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: axisColor, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
+                width={38}
+              />
+              <Tooltip content={<CustomBarTooltip tooltipBg={tooltipBg} tooltipBorder={tooltipBorder} tooltipText={tooltipText} />} cursor={{ fill: 'rgba(156,163,175,0.08)' }} />
+              <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={56}>
+                {chartData.map((entry, index) => (
+                  <RechartsCell key={index} fill={`url(#${GRADIENTS[index].id})`} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border-2 hover:border-purple-500 border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        {/* Pie Chart */}
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">Distribution</h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Breakdown of this month</p>
+          <ResponsiveContainer width="100%" height={220}>
             <PieChart>
+              <defs>
+                {GRADIENTS.map(g => (
+                  <radialGradient key={`r-${g.id}`} id={`r-${g.id}`} cx="50%" cy="50%" r="50%">
+                    <stop offset="0%"   stopColor={g.start} stopOpacity={1} />
+                    <stop offset="100%" stopColor={g.end}   stopOpacity={0.9} />
+                  </radialGradient>
+                ))}
+              </defs>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
+                innerRadius={62}
+                outerRadius={95}
+                paddingAngle={3}
                 dataKey="value"
+                strokeWidth={0}
+                onMouseEnter={(_, index) => setActivePieIndex(index)}
+                onMouseLeave={() => setActivePieIndex(null)}
               >
-                {chartData.map((_entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {chartData.map((entry, index) => (
+                  <RechartsCell
+                    key={index}
+                    fill={`url(#r-${GRADIENTS[index].id})`}
+                    opacity={activePieIndex === null || activePieIndex === index ? 1 : 0.45}
+                    style={{ transition: 'opacity 0.2s, transform 0.2s', transformOrigin: 'center',
+                      transform: activePieIndex === index ? 'scale(1.04)' : 'scale(1)' }}
+                  />
                 ))}
+                <PieCenterLabel activePieIndex={activePieIndex} chartData={chartData} summary={summary} axisColor={axisColor} />
               </Pie>
-              <Tooltip formatter={(value) => `Rs ${value.toLocaleString()}`} />
             </PieChart>
           </ResponsiveContainer>
-          <div className="flex justify-center gap-6 mt-4">
+          {/* Custom legend with amounts */}
+          <div className="flex justify-center gap-5 mt-2">
             {chartData.map((item, idx) => (
-              <div key={item.name} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx] }} />
-                <span className="text-sm text-gray-600 dark:text-gray-400">{item.name}</span>
+              <div key={item.name} className="flex flex-col items-center gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx] }} />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{item.name}</span>
+                </div>
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+                  ₹{item.value.toLocaleString()}
+                </span>
               </div>
             ))}
           </div>
