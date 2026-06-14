@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import useTheme from '../hooks/useTheme';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
@@ -8,6 +9,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { register } = useAuth();
+  const { isDark } = useTheme();
+  const logo = isDark ? '/Budget_Sathi_Light.png' : '/Budget_Sathi_Dark.png';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +32,7 @@ const Register = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-200">
       <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-lg p-8">
         <div className="flex items-center justify-center gap-2 mb-5">
-          <img src="/BudgetSathi.png" alt="Budget Sathi" className="h-12 w-auto" />
+          <img src={logo} alt="Budget Sathi" className="h-12 w-auto" />
         </div>
 
         <h2 className="text-xl font-semibold text-center mb-6 mt-5 text-gray-900 dark:text-gray-100">Create your account</h2>

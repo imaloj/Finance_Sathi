@@ -1,6 +1,8 @@
-import { Wallet } from 'lucide-react';
+import useTheme from '../hooks/useTheme';
 
 const AppLoader = () => {
+  const { isDark } = useTheme();
+  const logo = isDark ? '/Budget_Sathi_Light.png' : '/Budget_Sathi_Dark.png';
   return (
     <div className="fixed inset-0 bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center z-50">
       {/* Ripple rings */}
@@ -9,7 +11,7 @@ const AppLoader = () => {
         <span className="absolute w-24 h-24 rounded-full bg-primary-500/15 animate-ping" style={{ animationDelay: '0.3s' }} />
         {/* Logo circle */}
         <div className="relative w-20 h-20 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center shadow-lg shadow-primary-500/20 border border-gray-100 dark:border-gray-700">
-          <img src="/BudgetSathi.png" alt="Budget Sathi" className="w-14 h-14 object-contain" />
+          <img src={logo} alt="Budget Sathi" className="w-14 h-14 object-contain" />
         </div>
       </div>
 

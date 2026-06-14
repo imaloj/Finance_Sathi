@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import useAuth from '../hooks/useAuth';
+import useTheme from '../hooks/useTheme';
 import api from '../services/api';
 import { Save, AlertTriangle } from 'lucide-react';
+import ThemeSwitch from '../components/ThemeSwitch';
 
 const Settings = () => {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [formData, setFormData] = useState({
     name: user?.name || '',
     currency: user?.currency || 'NPR',
@@ -47,6 +50,20 @@ const Settings = () => {
           {error}
         </div>
       )}
+
+      {/* Appearance */}
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Appearance</h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              {isDark ? 'Currently using dark theme' : 'Currently using light theme'}
+            </p>
+          </div>
+          <ThemeSwitch />
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-6">
         <div>

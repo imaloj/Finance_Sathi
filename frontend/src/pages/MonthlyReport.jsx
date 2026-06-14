@@ -127,7 +127,6 @@ const MonthlyReport = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Financial Report</h2>
           <p className="text-gray-500 dark:text-gray-400">Generate and download your monthly financial summary</p>
         </div>
-        <img src="/BudgetSathi.png" alt="Budget Sathi" className="h-10 w-auto" />
       </div>
 
       {/* Controls */}

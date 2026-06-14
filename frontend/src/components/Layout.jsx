@@ -1,11 +1,13 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import useTheme from '../hooks/useTheme';
 import { LayoutDashboard, Receipt, PieChart, Settings, LogOut } from 'lucide-react';
-import ThemeSwitch from './ThemeSwitch';
 
 const Layout = () => {
   const { logout, user } = useAuth();
+  const { isDark } = useTheme();
   const location = useLocation();
+  const logo = isDark ? '/Budget_Sathi_Light.png' : '/Budget_Sathi_Dark.png';
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -21,10 +23,8 @@ const Layout = () => {
         {/* Logo */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/BudgetSathi.png" alt="Budget Sathi" className="h-25 w-auto" />
+            <img src={logo} alt="Budget Sathi" className="h-25 w-auto" />
           </div>
-          {/* Dark mode toggle */}
-          <ThemeSwitch />
         </div>
 
         {/* Nav */}
