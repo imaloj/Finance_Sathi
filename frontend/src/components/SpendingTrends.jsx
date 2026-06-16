@@ -5,6 +5,8 @@ import {
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import api from '../services/api';
+import useAuth from '../hooks/useAuth';
+import { formatCurrency } from '../utils/currency';
 
 const PERIODS = [
   { label: '3M', value: 3 },
@@ -12,7 +14,7 @@ const PERIODS = [
   { label: '12M', value: 12 },
 ];
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, currency }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-4 py-3 text-sm">
@@ -24,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             <span className="text-gray-600 dark:text-gray-400 capitalize">{entry.name}</span>
           </span>
           <span className="font-medium" style={{ color: entry.color }}>
-            Rs {Number(entry.value).toLocaleString()}
+            {formatCurrency(Number(entry.value), currency)}
           </span>
         </div>
       ))}
@@ -37,6 +39,8 @@ const SpendingTrends = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useAuth();
+  const currency = user?.currency || 'USD';
 
   useEffect(() => {
     let cancelled = false;
@@ -108,7 +112,7 @@ const SpendingTrends = () => {
               tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
               width={40}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip currency={currency} />} />
             <Legend
               iconType="circle"
               iconSize={8}

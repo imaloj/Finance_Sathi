@@ -2,23 +2,24 @@ import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync } from 'fs';
+import { formatCurrency } from '../utils/currency.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Embed logo as base64 so Puppeteer can render it without a running server
 const logoPath = join(__dirname, '../../frontend/public/Budget_Sathi_Dark.png');
 let logoBase64 = '';
 try {
   logoBase64 = `data:image/png;base64,${readFileSync(logoPath).toString('base64')}`;
 } catch {
-  // Logo file not found — will fall back to text header
+  // Logo file not found — falls back to text header
 }
 
 const generateHTML = (data) => {
   const { user, report, summary, month, year, prevMonthData } = data;
-  
-  const fmt = (n) => typeof n === 'number' ? `Rs ${n.toLocaleString('en', { minimumFractionDigits: 2 })}` : 'Rs 0.00';
+
+  const currency = user?.currency || 'USD';
+  const fmt = (n) => formatCurrency(typeof n === 'number' ? n : 0, currency);
   const pct = (n) => typeof n === 'number' ? `${n > 0 ? '+' : ''}${n.toFixed(1)}%` : '0%';
   
   const prevMonth = month === 1 ? 12 : month - 1;

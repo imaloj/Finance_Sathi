@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../models/User.js';
 import { getRedis } from '../config/redis.js';
+import { getCurrencyFromCountry } from '../utils/currency.js';
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
@@ -19,13 +20,14 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-export const register = async ({ email, password, name }) => {
+export const register = async ({ email, password, name, country }) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw Object.assign(new Error('Email already registered'), { statusCode: 400 });
   }
 
-  const user = await User.create({ email, password, name });
+  const currency = country ? getCurrencyFromCountry(country) : 'USD';
+  const user = await User.create({ email, password, name, country: country || '', currency });
   const tokens = generateTokens(user._id);
 
   const refreshHash = crypto.createHash('sha256').update(tokens.refreshToken).digest('hex');
@@ -136,11 +138,16 @@ export const logoutAll = async (userId) => {
 };
 
 export const updateProfile = async (userId, updates) => {
-  const ALLOWED_FIELDS = ['name', 'currency', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance'];
+  const ALLOWED_FIELDS = ['name', 'country', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance'];
 
   const sanitized = Object.fromEntries(
     Object.entries(updates).filter(([key]) => ALLOWED_FIELDS.includes(key))
   );
+
+  // Auto-derive currency from country if country is being updated
+  if (sanitized.country) {
+    sanitized.currency = getCurrencyFromCountry(sanitized.country);
+  }
 
   if (Object.keys(sanitized).length === 0) {
     throw Object.assign(new Error('No valid fields to update'), { statusCode: 400 });
@@ -157,7 +164,7 @@ export const updateProfile = async (userId, updates) => {
   }
 
   // Invalidate running balance cache if initialBalance was updated
-  if ('initialBalance' in sanitized) {
+  if ('initialBalance' in sanitized || 'country' in sanitized) {
     const redis = getRedis();
     await redis.del(`running_balance:${userId}`);
   }

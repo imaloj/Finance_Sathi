@@ -4,13 +4,15 @@ import useTheme from '../hooks/useTheme';
 import api from '../services/api';
 import { Save, AlertTriangle } from 'lucide-react';
 import ThemeSwitch from '../components/ThemeSwitch';
+import CustomSelect from '../components/CustomSelect';
+import { COUNTRY_OPTIONS, getCurrencyFromCountry } from '../utils/currency';
 
 const Settings = () => {
   const { user } = useAuth();
   const { isDark } = useTheme();
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    currency: user?.currency || 'NPR',
+    country: user?.country || '',
     monthlyIncomeGoal: user?.monthlyIncomeGoal || '',
     monthlyExpenseBudget: user?.monthlyExpenseBudget || '',
     monthlySavingGoal: user?.monthlySavingGoal || '',
@@ -77,17 +79,24 @@ const Settings = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
-          <select
-            value={formData.currency}
-            onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-            className={inputClass}
-          >
-            <option value="NPR">रु NPR (Nepalese Rupaiya)</option>
-            <option value="USD">$ USD (US Dollar)</option>
-            <option value="EUR">€ EUR (Euro)</option>
-            <option value="GBP">£ GBP (British Pound)</option>
-          </select>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Country
+            {formData.country && (
+              <span className="ml-2 text-xs text-primary-600 dark:text-primary-400 font-normal">
+                → {getCurrencyFromCountry(formData.country)} currency
+              </span>
+            )}
+          </label>
+          <CustomSelect
+            value={formData.country}
+            onChange={(val) => setFormData({ ...formData, country: val })}
+            options={COUNTRY_OPTIONS}
+            placeholder="Select your country..."
+            searchable
+          />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            Currency is set automatically based on your country
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

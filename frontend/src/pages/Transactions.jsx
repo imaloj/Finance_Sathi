@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CustomSelect from '../components/CustomSelect';
 import DatePicker from '../components/DatePicker';
+import useAuth from '../hooks/useAuth';
+import { formatCurrency } from '../utils/currency';
 
 const DASHBOARD_REFRESH_EVENT = 'dashboard:refresh';
 const triggerDashboardRefresh = () =>
@@ -63,12 +65,15 @@ const Transactions = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [filters, setFilters] = useState({ month: '', year: '', type: '' });
   const [formData, setFormData] = useState({
-    type: 'Expense',
+    type: 'expense',
     amount: '',
     category: '',
     description: '',
     date: format(new Date(), 'yyyy-MM-dd'),
   });
+
+  const { user } = useAuth();
+  const currency = user?.currency || 'USD';
 
 
   const fetchTransactions = useCallback(async () => {
@@ -293,7 +298,7 @@ const Transactions = () => {
                     {txn.description || '—'}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-right text-gray-900 dark:text-gray-100">
-                    Rs {txn.amount.toLocaleString()}
+                    {formatCurrency(txn.amount, currency)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button

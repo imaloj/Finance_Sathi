@@ -25,7 +25,11 @@ const userSchema = new mongoose.Schema({
   currency: {
     type: String,
     default: 'USD',
-    enum: ['NPR', 'USD', 'EUR', 'GBP']
+  },
+  country: {
+    type: String,
+    default: '',
+    trim: true,
   },
   monthlyIncomeGoal: {
     type: Number,

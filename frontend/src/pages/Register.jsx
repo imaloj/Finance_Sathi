@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import useTheme from '../hooks/useTheme';
 import { Eye, EyeOff } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect';
+import { COUNTRY_OPTIONS, getCurrencyFromCountry } from '../utils/currency';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', country: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { register } = useAuth();
@@ -96,6 +98,28 @@ const Register = () => {
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Must include uppercase, lowercase, number &amp; special character</p>
+          </div>
+
+          {/* Country */}
+          <div>
+            <label className="block text-sm text-left font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Country
+              {formData.country && (
+                <span className="ml-2 text-xs text-primary-600 dark:text-primary-400 font-normal">
+                  → {getCurrencyFromCountry(formData.country)} currency
+                </span>
+              )}
+            </label>
+            <CustomSelect
+              value={formData.country}
+              onChange={(val) => setFormData({ ...formData, country: val })}
+              options={COUNTRY_OPTIONS}
+              placeholder="Select your country..."
+              searchable
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Sets your default currency automatically
+            </p>
           </div>
 
           <button

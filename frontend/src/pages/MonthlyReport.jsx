@@ -3,6 +3,8 @@ import api from '../services/api';
 import { format } from 'date-fns';
 import { Sparkles, Loader2, Download, AlertCircle, Lightbulb, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
+import useAuth from '../hooks/useAuth';
+import { formatCurrency } from '../utils/currency';
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -100,14 +102,11 @@ const MonthlyReport = () => {
     return 'Needs Attention';
   };
 
-  const fmt = (n) => typeof n === 'number'
-    ? `Rs ${n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : 'Rs 0.00';
+  const { user } = useAuth();
+  const currency = user?.currency || 'USD';
 
-  const ytd = (n) => typeof n === 'number'
-    ? `Rs ${(n * month).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : 'Rs 0.00';
-
+  const fmt = (n) => formatCurrency(typeof n === 'number' ? n : 0, currency);
+  const ytd  = (n) => formatCurrency(typeof n === 'number' ? n * month : 0, currency);
   const pctChange = (curr, prev) => {
     if (!prev || prev === 0) return 'N/A';
     const change = ((curr - prev) / prev) * 100;

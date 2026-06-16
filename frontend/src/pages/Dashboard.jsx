@@ -10,13 +10,14 @@ import useAuth from '../hooks/useAuth';
 import useTheme from '../hooks/useTheme';
 import CustomSelect from '../components/CustomSelect';
 import SpendingTrends from '../components/SpendingTrends';
+import { formatCurrency } from '../utils/currency';
 
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   value: i + 1,
   label: format(new Date(2024, i, 1), 'MMMM'),
 }));
 
-const StatCard = ({ title, amount, icon: Icon, color, bg }) => (
+const StatCard = ({ title, amount, icon: Icon, color, bg, currency }) => (
   <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
     <div className="flex items-center justify-between mb-4">
       <div className={`p-3 rounded-lg ${bg}`}>
@@ -24,7 +25,7 @@ const StatCard = ({ title, amount, icon: Icon, color, bg }) => (
       </div>
     </div>
     <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{title}</p>
-    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">₹{amount.toLocaleString()}</p>
+    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(amount, currency)}</p>
   </div>
 );
 
@@ -34,7 +35,7 @@ const colorMap = {
   blue:  { bar: 'bg-blue-500',  text: 'text-blue-600',  warn: 'bg-yellow-400', danger: 'bg-red-500' },
 };
 
-const BudgetBar = ({ label, current, goal, color, higherIsBetter }) => {
+const BudgetBar = ({ label, current, goal, color, higherIsBetter, currency }) => {
   const pct = Math.min((current / goal) * 100, 100);
   const c = colorMap[color];
 
@@ -53,8 +54,8 @@ const BudgetBar = ({ label, current, goal, color, higherIsBetter }) => {
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          <span className={`font-semibold ${c.text}`}>₹{current.toLocaleString()}</span>
-          {' / '}₹{goal.toLocaleString()}
+          <span className={`font-semibold ${c.text}`}>{formatCurrency(current, currency)}</span>
+          {' / '}{formatCurrency(goal, currency)}
         </span>
       </div>
       <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
@@ -71,20 +72,20 @@ const BudgetBar = ({ label, current, goal, color, higherIsBetter }) => {
   );
 };
 
-const CustomBarTooltip = ({ active, payload, label, tooltipBg, tooltipBorder, tooltipText }) => {
+const CustomBarTooltip = ({ active, payload, label, tooltipBg, tooltipBorder, tooltipText, currency }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: tooltipBg, border: `1px solid ${tooltipBorder}`, color: tooltipText }}
       className="rounded-xl px-4 py-3 shadow-xl text-sm">
       <p className="font-semibold mb-1">{label}</p>
       <p style={{ color: payload[0].payload.color }} className="font-bold text-base">
-        ₹{Number(payload[0].value).toLocaleString()}
+        {formatCurrency(Number(payload[0].value), currency)}
       </p>
     </div>
   );
 };
 
-const PieCenterLabel = ({ activePieIndex, chartData, summary, axisColor }) => {
+const PieCenterLabel = ({ activePieIndex, chartData, summary, axisColor, currency }) => {
   const cx = '50%', cy = '50%';
   const active = activePieIndex !== null ? chartData[activePieIndex] : null;
   return (
@@ -92,9 +93,9 @@ const PieCenterLabel = ({ activePieIndex, chartData, summary, axisColor }) => {
       <tspan x={cx} dy="-0.4em" fontSize="11" fill={axisColor}>
         {active ? active.name : 'Net'}
       </tspan>
-      <tspan x={cx} dy="1.4em" fontSize="15" fontWeight="700"
+      <tspan x={cx} dy="1.4em" fontSize="13" fontWeight="700"
         fill={active ? active.color : (summary?.net >= 0 ? '#10b981' : '#ef4444')}>
-        ₹{(active ? active.value : Math.abs(summary?.net || 0)).toLocaleString()}
+        {formatCurrency(active ? active.value : Math.abs(summary?.net || 0), currency)}
       </tspan>
     </text>
   );
@@ -105,6 +106,7 @@ const Dashboard = () => {
   const [activePieIndex, setActivePieIndex] = useState(null);
   const { summary, recentTransactions, runningBalance, loading, currentYear, activeMonth } = useDashboardRefresh(selectedMonth);
   const { user } = useAuth();
+  const currency = user?.currency || 'USD';
   const { isDark } = useTheme();
 
   const COLORS = ['#10b981', '#ef4444', '#3b82f6'];
@@ -150,33 +152,16 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Income"
-          amount={summary?.income || 0}
-          icon={TrendingUp}
-          color="text-green-600"
-          bg="bg-green-50"
-        />
-        <StatCard
-          title="Total Expenses"
-          amount={summary?.expense || 0}
-          icon={TrendingDown}
-          color="text-red-600"
-          bg="bg-red-50"
-        />
-        <StatCard
-          title="Total Savings"
-          amount={summary?.saving || 0}
-          icon={PiggyBank}
-          color="text-blue-600"
-          bg="bg-blue-50"
-        />
+        <StatCard title="Total Income"   amount={summary?.income || 0}  icon={TrendingUp}   color="text-green-600" bg="bg-green-50" currency={currency} />
+        <StatCard title="Total Expenses" amount={summary?.expense || 0} icon={TrendingDown}  color="text-red-600"   bg="bg-red-50"   currency={currency} />
+        <StatCard title="Total Savings"  amount={summary?.saving || 0}  icon={PiggyBank}    color="text-blue-600"  bg="bg-blue-50"  currency={currency} />
         <StatCard
           title="Net Balance"
           amount={summary?.net || 0}
           icon={PiggyBank}
           color={summary?.net >= 0 ? 'text-green-600' : 'text-red-600'}
           bg={summary?.net >= 0 ? 'bg-green-50' : 'bg-red-50'}
+          currency={currency}
         />
       </div>
 
@@ -197,7 +182,7 @@ const Dashboard = () => {
             </div>
           </div>
           <p className={`text-2xl font-bold ${runningBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-            ₹{Math.abs(runningBalance).toLocaleString()}
+            {formatCurrency(Math.abs(runningBalance), currency)}
             {runningBalance < 0 && <span className="text-sm ml-1">deficit</span>}
           </p>
         </div>
@@ -233,7 +218,7 @@ const Dashboard = () => {
                 tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
                 width={38}
               />
-              <Tooltip content={<CustomBarTooltip tooltipBg={tooltipBg} tooltipBorder={tooltipBorder} tooltipText={tooltipText} />} cursor={{ fill: 'rgba(156,163,175,0.08)' }} />
+              <Tooltip content={<CustomBarTooltip tooltipBg={tooltipBg} tooltipBorder={tooltipBorder} tooltipText={tooltipText} currency={currency} />} cursor={{ fill: 'rgba(156,163,175,0.08)' }} />
               <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={56}>
                 {chartData.map((entry, index) => (
                   <RechartsCell key={index} fill={`url(#${GRADIENTS[index].id})`} />
@@ -278,7 +263,7 @@ const Dashboard = () => {
                       transform: activePieIndex === index ? 'scale(1.04)' : 'scale(1)' }}
                   />
                 ))}
-                <PieCenterLabel activePieIndex={activePieIndex} chartData={chartData} summary={summary} axisColor={axisColor} />
+                <PieCenterLabel activePieIndex={activePieIndex} chartData={chartData} summary={summary} axisColor={axisColor} currency={currency} />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
@@ -291,7 +276,7 @@ const Dashboard = () => {
                   <span className="text-xs text-gray-500 dark:text-gray-400">{item.name}</span>
                 </div>
                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
-                  ₹{item.value.toLocaleString()}
+                  {formatCurrency(item.value, currency)}
                 </span>
               </div>
             ))}
@@ -311,31 +296,13 @@ const Dashboard = () => {
           </div>
           <div className="space-y-5">
             {user?.monthlyIncomeGoal > 0 && (
-              <BudgetBar
-                label="Income Goal"
-                current={summary?.income || 0}
-                goal={user.monthlyIncomeGoal}
-                color="green"
-                higherIsBetter={true}
-              />
+              <BudgetBar label="Income Goal"    current={summary?.income || 0}  goal={user.monthlyIncomeGoal}     color="green" higherIsBetter={true}  currency={currency} />
             )}
             {user?.monthlyExpenseBudget > 0 && (
-              <BudgetBar
-                label="Expense Budget"
-                current={summary?.expense || 0}
-                goal={user.monthlyExpenseBudget}
-                color="red"
-                higherIsBetter={false}
-              />
+              <BudgetBar label="Expense Budget" current={summary?.expense || 0} goal={user.monthlyExpenseBudget}  color="red"   higherIsBetter={false} currency={currency} />
             )}
             {user?.monthlySavingGoal > 0 && (
-              <BudgetBar
-                label="Saving Goal"
-                current={summary?.saving || 0}
-                goal={user.monthlySavingGoal}
-                color="blue"
-                higherIsBetter={true}
-              />
+              <BudgetBar label="Saving Goal"    current={summary?.saving || 0}  goal={user.monthlySavingGoal}     color="blue"  higherIsBetter={true}  currency={currency} />
             )}
           </div>
           <p className="text-xs text-gray-400 mt-4">
@@ -365,7 +332,7 @@ const Dashboard = () => {
                     txn.type === 'income' ? 'text-green-600' :
                     txn.type === 'expense' ? 'text-red-600' : 'text-blue-600'
                   }`}>
-                    {txn.type === 'income' ? '+' : '-'} ₹{txn.amount.toLocaleString()}
+                    {txn.type === 'income' ? '+' : '-'} {formatCurrency(txn.amount, currency)}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">{format(new Date(txn.date), 'dd MMM yyyy')}</p>
                 </div>
