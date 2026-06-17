@@ -10,7 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const { isDark } = useTheme();
-  const logo = isDark ? '/Budget_Sathi_Light.png' : '/Budget_Sathi_Dark.png';
+  const logo = isDark ? '/Dark%20mode%20web.png' : '/light%20mode%20web.png';
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {

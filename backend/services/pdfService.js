@@ -7,7 +7,7 @@ import { formatCurrency } from '../utils/currency.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const logoPath = join(__dirname, '../../frontend/public/Budget_Sathi_Dark.png');
+const logoPath = join(__dirname, '../../frontend/public/light mode web.png');
 let logoBase64 = '';
 try {
   logoBase64 = `data:image/png;base64,${readFileSync(logoPath).toString('base64')}`;

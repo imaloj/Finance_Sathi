@@ -2,7 +2,7 @@ import useTheme from '../hooks/useTheme';
 
 const AppLoader = () => {
   const { isDark } = useTheme();
-  const logo = isDark ? '/Budget_Sathi_Light.png' : '/Budget_Sathi_Dark.png';
+  const logo = isDark ? '/Dark%20logo.png' : '/light%20mode.png';
   return (
     <div className="fixed inset-0 bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center z-50">
       {/* Ripple rings */}

@@ -7,7 +7,7 @@ const Layout = () => {
   const { logout, user } = useAuth();
   const { isDark } = useTheme();
   const location = useLocation();
-  const logo = isDark ? '/Budget_Sathi_Light.png' : '/Budget_Sathi_Dark.png';
+  const logo = isDark ? '/Dark%20mode%20web.png' : '/light%20mode%20web.png';
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -23,7 +23,7 @@ const Layout = () => {
         {/* Logo */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Budget Sathi" className="h-25 w-auto" />
+            <img src={logo} alt="Budget Sathi" className="h-24 w-auto object-contain" />
           </div>
         </div>
 
