@@ -53,6 +53,11 @@ export const AuthProvider = ({ children }) => {
     navigate('/');
   };
 
+  // Update user profile and sync local state immediately
+  const updateUser = (updatedUser) => {
+    setUser(prev => ({ ...prev, ...updatedUser }));
+  };
+
   // Logout
   const logout = async () => {
     try {
@@ -72,6 +77,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateUser,
         loading,
         isAuthenticated: !!user,
       }}

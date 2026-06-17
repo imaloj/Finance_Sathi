@@ -8,7 +8,7 @@ import CustomSelect from '../components/CustomSelect';
 import { COUNTRY_OPTIONS, getCurrencyFromCountry } from '../utils/currency';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { isDark } = useTheme();
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -26,7 +26,8 @@ const Settings = () => {
     setMessage('');
     setError('');
     try {
-      await api.put('/auth/profile', formData);
+      const response = await api.put('/auth/profile', formData);
+      updateUser(response.data.data); // sync updated user (with new currency) immediately
       setMessage('Settings updated successfully');
     } catch (err) {
       setError(err.response?.data?.message || 'Update failed');
