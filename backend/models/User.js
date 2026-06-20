@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  language: {
+    type: String,
+    default: 'English',
+    trim: true,
+  },
   monthlyIncomeGoal: {
     type: Number,
     default: 0,
@@ -57,6 +62,22 @@ const userSchema = new mongoose.Schema({
     expiresAt: Date
   }],
   isActive: {
+    type: Boolean,
+    default: true
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: {
+    type: String,
+    select: false
+  },
+  emailVerificationExpiry: {
+    type: Date,
+    select: false
+  },
+  monthlyReportEmail: {
     type: Boolean,
     default: true
   },

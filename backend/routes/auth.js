@@ -2,7 +2,7 @@ import express from 'express';
 import { validate, authValidators } from '../middleware/validator.js';
 import * as authService from '../services/authService.js';
 import { authenticate } from '../middleware/auth.js';
-import { setAuthCookies } from '../utils/authCookies.js';
+import { setAuthCookies, clearAuthCookies } from '../utils/authCookies.js';
 
 const router = express.Router();
 
@@ -101,6 +101,38 @@ router.put('/profile', authenticate, async (req, res, next) => {
   try {
     const user = await authService.updateProfile(req.user._id, req.body);
     res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// VERIFY EMAIL
+router.get('/verify-email', async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ success: false, message: 'Token required' });
+    await authService.verifyEmail(token);
+    // Redirect to frontend with success
+    res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/?verified=true`);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// CHANGE PASSWORD
+router.put('/change-password', authenticate, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Both current and new password are required' });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
+    }
+    await authService.changePassword(req.user._id, currentPassword, newPassword);
+    // Clear cookies — user needs to log in again
+    clearAuthCookies(res);
+    res.status(200).json({ success: true, message: 'Password changed successfully. Please log in again.' });
   } catch (error) {
     next(error);
   }

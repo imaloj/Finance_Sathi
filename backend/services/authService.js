@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import { getRedis } from '../config/redis.js';
 import { getCurrencyFromCountry } from '../utils/currency.js';
+import { sendVerificationEmail, sendPasswordChangedEmail } from './emailService.js';
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
@@ -27,7 +28,14 @@ export const register = async ({ email, password, name, country }) => {
   }
 
   const currency = country ? getCurrencyFromCountry(country) : 'USD';
-  const user = await User.create({ email, password, name, country: country || '', currency });
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const user = await User.create({
+    email, password, name,
+    country: country || '',
+    currency,
+    emailVerificationToken: verificationToken,
+    emailVerificationExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000)
+  });
   const tokens = generateTokens(user._id);
 
   const refreshHash = crypto.createHash('sha256').update(tokens.refreshToken).digest('hex');
@@ -36,6 +44,11 @@ export const register = async ({ email, password, name, country }) => {
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   }];
   await user.save();
+
+  // Send verification email (non-blocking — don't fail registration if email fails)
+  sendVerificationEmail(user.email, user.name, verificationToken).catch(err =>
+    console.error('Failed to send verification email:', err.message)
+  );
 
   return { user, tokens };
 };
@@ -137,8 +150,44 @@ export const logoutAll = async (userId) => {
   return true;
 };
 
+export const verifyEmail = async (token) => {
+  const user = await User.findOne({
+    emailVerificationToken: token,
+    emailVerificationExpiry: { $gt: new Date() }
+  }).select('+emailVerificationToken +emailVerificationExpiry');
+
+  if (!user) {
+    throw Object.assign(new Error('Invalid or expired verification token'), { statusCode: 400 });
+  }
+
+  user.isEmailVerified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpiry = undefined;
+  await user.save();
+  return user;
+};
+
+export const changePassword = async (userId, currentPassword, newPassword) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) throw Object.assign(new Error('Current password is incorrect'), { statusCode: 400 });
+
+  user.password = newPassword;
+  user.refreshTokens = []; // invalidate all sessions
+  await user.save();
+
+  // Notify user via email (non-blocking)
+  sendPasswordChangedEmail(user.email, user.name).catch(err =>
+    console.error('Failed to send password change email:', err.message)
+  );
+
+  return true;
+};
+
 export const updateProfile = async (userId, updates) => {
-  const ALLOWED_FIELDS = ['name', 'country', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance'];
+  const ALLOWED_FIELDS = ['name', 'country', 'language', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance', 'monthlyReportEmail'];
 
   const sanitized = Object.fromEntries(
     Object.entries(updates).filter(([key]) => ALLOWED_FIELDS.includes(key))

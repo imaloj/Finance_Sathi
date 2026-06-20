@@ -17,6 +17,7 @@ import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import reportRoutes from './routes/reports.js';
 import { logger } from './utils/logger.js';
+import { startCronJobs } from './services/cronService.js';
 
 dotenv.config();
 if (!process.env.MISTRAL_API_KEY || process.env.MISTRAL_API_KEY.length < 10) {
@@ -60,7 +61,7 @@ app.use(cors({
 
 app.use(generalLimiter);
 app.use(express.json({ limit: '10kb' }));
-app.use(cookieParser()); // ← REQUIRED for httpOnly cookies
+app.use(cookieParser());
 app.use(mongoSanitize);
 
 // Replace deprecated xss-clean with DOMPurify
@@ -105,6 +106,7 @@ if (process.env.NODE_ENV === 'production') {
 // Database Connections
 connectDB();
 connectRedis();
+startCronJobs();
 
 // Health Check
 app.get('/api/health', (req, res) => {

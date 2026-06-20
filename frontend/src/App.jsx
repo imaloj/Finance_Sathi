@@ -1,8 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import useAuth from './hooks/useAuth';
 import useTheme from './hooks/useTheme';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
+import { useEffect } from 'react';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -65,7 +67,17 @@ function App() {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, updateUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Show toast when redirected back after email verification
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      toast.success('Email verified successfully! ✅');
+      updateUser({ isEmailVerified: true });
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams, updateUser]);
 
   if (loading) return <AppLoader />;
 
