@@ -10,7 +10,7 @@ const transactionSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['Income', 'Expense', 'Saving'],
+    enum: ['income', 'expense', 'saving'],
     index: true
   },
   amount: {
@@ -24,12 +24,12 @@ const transactionSchema = new mongoose.Schema({
     enum: {
       values: [
         // Income
-        'Salary', 'Freelance', 'Investment', 'Gift', 'Other_Income',
+        'salary', 'freelance', 'investment', 'gift', 'other_income',
         // Expense
-        'Food', 'Transport', 'Housing', 'Utilities', 'Healthcare', 
-        'Entertainment', 'Shopping', 'Education', 'Personal', 'Other_Expense',
+        'food', 'transport', 'housing', 'utilities', 'healthcare',
+        'entertainment', 'shopping', 'education', 'personal', 'other_expense',
         // Saving
-        'Emergency_Fund', 'Retirement', 'Investment', 'Goal_Based', 'Other_Saving'
+        'emergency_fund', 'retirement', 'goal_based', 'other_saving'
       ],
       message: 'Please select a valid category'
     }

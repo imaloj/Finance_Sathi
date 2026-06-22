@@ -79,7 +79,7 @@ const DatePicker = ({ value, onChange, required = false, disabled = false, class
 
       {/* Calendar panel */}
       {open && (
-        <div className="absolute z-50 mt-1 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3 animate-dropdown">
+        <div className="absolute z-60 mt-1 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3 animate-dropdown">
           <DayPicker
             mode="single"
             selected={selected}

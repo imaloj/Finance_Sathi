@@ -334,7 +334,7 @@ const Dashboard = () => {
                   }`}>
                     {txn.type === 'income' ? '+' : '-'} {formatCurrency(txn.amount, currency)}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">{format(new Date(txn.date), 'dd MMM yyyy')}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{format(new Date(txn.date), 'dd MMM yyyy')} · {format(new Date(txn.createdAt || txn.date), 'hh:mm a')}</p>
                 </div>
               </div>
             ))

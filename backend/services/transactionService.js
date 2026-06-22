@@ -42,7 +42,7 @@ export const getTransactions = async (userId, filters = {}) => {
   }
 
   const transactions = await Transaction.find(query)
-    .sort({ date: -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(parseInt(limit));
 

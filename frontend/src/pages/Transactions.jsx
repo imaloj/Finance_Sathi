@@ -13,16 +13,15 @@ const triggerDashboardRefresh = () =>
   window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
 
 const CATEGORIES = {
-  Income: ['Salary', 'Freelance', 'Investment', 'Gift', 'Other_Income'],
-  Expense: ['Food', 'Transport', 'Housing', 'Utilities', 'Healthcare', 'Entertainment', 'Shopping', 'Education', 'Personal', 'Other_Expense'],
-  Saving: ['Emergency_Fund', 'Retirement', 'Investment', 'Goal_Based', 'Other_Saving'],
+  income: ['salary', 'freelance', 'investment', 'gift', 'other_income'],
+  expense: ['food', 'transport', 'housing', 'utilities', 'healthcare', 'entertainment', 'shopping', 'education', 'personal', 'other_expense'],
+  saving: ['emergency_fund', 'retirement', 'investment', 'goal_based', 'other_saving'],
 };
 
-// Static option arrays for CustomSelect
 const TYPE_OPTIONS = [
-  { value: 'Income',  label: 'Income' },
-  { value: 'Expense', label: 'Expense' },
-  { value: 'Saving',  label: 'Saving' },
+  { value: 'income',  label: 'Income' },
+  { value: 'expense', label: 'Expense' },
+  { value: 'saving',  label: 'Saving' },
 ];
 
 const FILTER_TYPE_OPTIONS = [
@@ -152,7 +151,7 @@ const Transactions = () => {
 
   const resetForm = () => {
     setFormData({
-      type: 'Expense',
+      type: 'expense',
       amount: '',
       category: '',
       description: '',
@@ -280,7 +279,8 @@ const Transactions = () => {
               filteredTransactions.map((txn) => (
                 <tr key={txn._id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                    {format(new Date(txn.date), 'dd MMM yyyy')}
+                    <div>{format(new Date(txn.date), 'dd MMM yyyy')}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500">{format(new Date(txn.createdAt || txn.date), 'hh:mm a')}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
@@ -334,7 +334,7 @@ const Transactions = () => {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -350,7 +350,7 @@ const Transactions = () => {
             </div>
 
             {/* Modal form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>

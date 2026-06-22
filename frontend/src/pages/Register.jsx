@@ -31,7 +31,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-start justify-center p-4 pt-8 sm:items-center transition-colors duration-200">
       <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-lg p-8">
         <div className="flex items-center justify-center gap-2 mb-5">
           <img src={logo} alt="Budget Sathi" className="h-12 w-auto" />

@@ -24,7 +24,7 @@ const NavLinks = ({ currentPath, onNavigate }) => (
           className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors${
             isActive
               ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+              : 'text-gray-600 dark:text-gray-400 hover:bg-purple-100 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300'
           }`}
         >
           <Icon size={20} />

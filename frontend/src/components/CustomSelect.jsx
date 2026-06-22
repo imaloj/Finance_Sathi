@@ -13,9 +13,43 @@ const CustomSelect = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [dropdownStyle, setDropdownStyle] = useState({});
   const containerRef = useRef(null);
   const searchRef = useRef(null);
   const id = useId();
+
+  // Calculate fixed position when opening
+  const handleOpen = () => {
+    if (disabled) return;
+    if (!open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+    setOpen(prev => !prev);
+  };
+
+  // Recalculate on scroll/resize
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDropdownStyle(s => ({ ...s, top: rect.bottom + 4, left: rect.left, width: rect.width }));
+      }
+    };
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [open]);
 
   // Close on outside click
   useEffect(() => {
@@ -29,7 +63,7 @@ const CustomSelect = ({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Focus search input when dropdown opens
+  // Focus search when opened
   useEffect(() => {
     if (open && searchable && searchRef.current) {
       searchRef.current.focus();
@@ -38,35 +72,20 @@ const CustomSelect = ({
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        setQuery('');
-      }
-    };
+    const handler = (e) => { if (e.key === 'Escape') { setOpen(false); setQuery(''); } };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
-  // Normalise options into grouped format for uniform rendering
   const isGrouped = options.length > 0 && options[0].group !== undefined;
-  const groups = isGrouped
-    ? options
-    : [{ group: null, items: options }];
+  const groups = isGrouped ? options : [{ group: null, items: options }];
 
-  // Filter by search query
   const filtered = groups
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((o) =>
-        o.label.toLowerCase().includes(query.toLowerCase())
-      ),
-    }))
-    .filter((g) => g.items.length > 0);
+    .map(g => ({ ...g, items: g.items.filter(o => o.label.toLowerCase().includes(query.toLowerCase())) }))
+    .filter(g => g.items.length > 0);
 
-  // Resolve display label for current value
-  const allItems = groups.flatMap((g) => g.items);
-  const selected = allItems.find((o) => o.value === value);
+  const allItems = groups.flatMap(g => g.items);
+  const selected = allItems.find(o => o.value === value);
   const displayLabel = selected ? selected.label : null;
 
   const handleSelect = (val) => {
@@ -84,7 +103,7 @@ const CustomSelect = ({
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
-        onClick={() => !disabled && setOpen((prev) => !prev)}
+        onClick={handleOpen}
         className={`
           w-full flex items-center justify-between gap-2
           border rounded-lg px-3 py-2 text-sm text-left
@@ -107,7 +126,7 @@ const CustomSelect = ({
         />
       </button>
 
-      {/* Hidden required sentinel for form validation */}
+      {/* Hidden required sentinel */}
       {required && (
         <input
           tabIndex={-1}
@@ -119,21 +138,13 @@ const CustomSelect = ({
         />
       )}
 
-      {/* Dropdown panel */}
+      {/* Dropdown panel — fixed position, never affects document flow */}
       {open && (
         <div
           role="listbox"
-          className={`
-            absolute z-50 mt-1 w-full min-w-40
-            bg-white dark:bg-gray-800
-            border border-gray-200 dark:border-gray-600
-            rounded-lg shadow-lg
-            overflow-hidden
-            animate-dropdown
-          `}
-          style={{ top: '100%' }}
+          style={dropdownStyle}
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl overflow-hidden animate-dropdown"
         >
-          {/* Search box */}
           {searchable && (
             <div className="p-2 border-b border-gray-100 dark:border-gray-700">
               <div className="relative">
@@ -142,7 +153,7 @@ const CustomSelect = ({
                   ref={searchRef}
                   type="text"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={e => setQuery(e.target.value)}
                   placeholder="Search..."
                   className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md
                     bg-gray-50 dark:bg-gray-700
@@ -155,22 +166,18 @@ const CustomSelect = ({
             </div>
           )}
 
-          {/* Options list */}
           <ul className="dropdown-scroll max-h-56 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-gray-400 dark:text-gray-500 text-center">
-                No results
-              </li>
+              <li className="px-3 py-2 text-sm text-gray-400 dark:text-gray-500 text-center">No results</li>
             ) : (
               filtered.map((group, gi) => (
                 <div key={gi}>
-                  {/* Group label */}
                   {group.group && (
                     <li className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                       {group.group}
                     </li>
                   )}
-                  {group.items.map((opt) => {
+                  {group.items.map(opt => {
                     const isActive = opt.value === value;
                     return (
                       <li
@@ -179,8 +186,7 @@ const CustomSelect = ({
                         aria-selected={isActive}
                         onMouseDown={() => handleSelect(opt.value)}
                         className={`
-                          flex items-center justify-between
-                          px-3 py-2 text-sm cursor-pointer
+                          flex items-center justify-between px-3 py-2 text-sm cursor-pointer
                           transition-colors duration-100
                           ${isActive
                             ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
