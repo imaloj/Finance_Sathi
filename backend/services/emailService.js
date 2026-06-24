@@ -85,6 +85,31 @@ export const sendMonthlyReportEmail = async (email, name, month, year, pdfBuffer
   });
 };
 
+// PASSWORD RESET
+export const sendPasswordResetEmail = async (email, name, token) => {
+  const link = `${APP_URL}/reset-password?token=${token}`;
+  await getResend().emails.send({
+    from: FROM,
+    to: email,
+    subject: 'Reset your Budget Sathi password',
+    html: `
+      <!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+      <body style="font-family:'Segoe UI',sans-serif;background:#f9fafb;margin:0;padding:40px 20px;">
+        <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:40px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <h1 style="color:#9333ea;font-size:22px;margin:0 0 8px;">💰 Budget Sathi</h1>
+          <p style="color:#6b7280;font-size:13px;margin:0 0 32px;">Your Personal Financial Companion</p>
+          <h2 style="color:#111827;font-size:18px;margin:0 0 16px;">Hi ${name}, reset your password</h2>
+          <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 28px;">
+            Click the button below to create a new password. This link expires in <strong>1 hour</strong>.
+          </p>
+          <a href="${link}" style="display:inline-block;background:#9333ea;color:#fff;text-decoration:none;padding:14px 32px;border-radius:50px;font-weight:600;font-size:15px;">Reset Password</a>
+          <p style="color:#9ca3af;font-size:12px;margin:28px 0 0;">If you didn't request this, ignore this email. Your password will remain unchanged.</p>
+        </div>
+      </body></html>
+    `,
+  });
+};
+
 // PASSWORD CHANGE NOTIFICATION
 
 export const sendPasswordChangedEmail = async (email, name) => {

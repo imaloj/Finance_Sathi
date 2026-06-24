@@ -119,6 +119,32 @@ router.get('/verify-email', async (req, res, next) => {
   }
 });
 
+// FORGOT PASSWORD
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+    await authService.forgotPassword(email);
+    // Always 200 to prevent email enumeration
+    res.status(200).json({ success: true, message: 'If an account exists with that email, a reset link has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// RESET PASSWORD
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ success: false, message: 'Token and new password are required' });
+    if (newPassword.length < 8) return res.status(400).json({ success: false, message: 'Password must be at least 8 characters' });
+    await authService.resetPassword(token, newPassword);
+    res.status(200).json({ success: true, message: 'Password reset successfully. You can now log in.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // CHANGE PASSWORD
 router.put('/change-password', authenticate, async (req, res, next) => {
   try {

@@ -1,4 +1,4 @@
-// Strips $ and . from object keys to prevent NoSQL injection
+
 const hasForbiddenChars = (str) => {
   return str.startsWith('$') || str.includes('.');
 };
@@ -27,14 +27,13 @@ export const mongoSanitize = (req, res, next) => {
     req.body = sanitize(req.body);
   }
   
-  // For req.query, create a new sanitized object
-  // Express 5 makes req.query read-only, so we use Object.defineProperty
+
   if (req.query && typeof req.query === 'object') {
     const cleanQuery = sanitize(req.query);
     try {
       req.query = cleanQuery;
     } catch (e) {
-      // Express 5: req.query is read-only, attach to req.sanitizedQuery instead
+
       req.sanitizedQuery = cleanQuery;
     }
   }

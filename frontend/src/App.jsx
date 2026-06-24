@@ -13,6 +13,8 @@ import Transactions from './pages/Transactions';
 import MonthlyReport from './pages/MonthlyReport';
 import Settings from './pages/Settings';
 import AppLoader from './components/AppLoader';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const ThemedToaster = () => {
   const { isDark } = useTheme();
@@ -85,8 +87,10 @@ function AppRoutes() {
     <>
       <ThemedToaster />
       <Routes>
-        <Route path="/login"    element={!isAuthenticated ? <Login />    : <Navigate to="/" />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+        <Route path="/login"          element={!isAuthenticated ? <Login />          : <Navigate to="/" />} />
+        <Route path="/register"       element={!isAuthenticated ? <Register />       : <Navigate to="/" />} />
+        <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/" />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
         <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
           <Route index element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />

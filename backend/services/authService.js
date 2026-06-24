@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import { getRedis } from '../config/redis.js';
 import { getCurrencyFromCountry } from '../utils/currency.js';
-import { sendVerificationEmail, sendPasswordChangedEmail } from './emailService.js';
+import { sendVerificationEmail, sendPasswordChangedEmail, sendPasswordResetEmail } from './emailService.js';
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
@@ -150,6 +150,42 @@ export const logoutAll = async (userId) => {
   return true;
 };
 
+export const forgotPassword = async (email) => {
+  // Always return success to prevent email enumeration attacks
+  const user = await User.findOne({ email });
+  if (!user) return true;
+
+  const token = crypto.randomBytes(32).toString('hex');
+  user.passwordResetToken = token;
+  user.passwordResetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  await user.save();
+
+  sendPasswordResetEmail(user.email, user.name, token).catch(err =>
+    console.error('Failed to send reset email:', err.message)
+  );
+  return true;
+};
+
+export const resetPassword = async (token, newPassword) => {
+  const user = await User.findOne({
+    passwordResetToken: token,
+    passwordResetExpiry: { $gt: new Date() }
+  }).select('+passwordResetToken +passwordResetExpiry');
+
+  if (!user) throw Object.assign(new Error('Invalid or expired reset token'), { statusCode: 400 });
+
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpiry = undefined;
+  user.refreshTokens = []; // invalidate all sessions
+  await user.save();
+
+  sendPasswordChangedEmail(user.email, user.name).catch(err =>
+    console.error('Failed to send password changed email:', err.message)
+  );
+  return true;
+};
+
 export const verifyEmail = async (token) => {
   const user = await User.findOne({
     emailVerificationToken: token,
@@ -193,7 +229,7 @@ export const updateProfile = async (userId, updates) => {
     Object.entries(updates).filter(([key]) => ALLOWED_FIELDS.includes(key))
   );
 
-  // Auto-derive currency from country if country is being updated
+
   if (sanitized.country) {
     sanitized.currency = getCurrencyFromCountry(sanitized.country);
   }
