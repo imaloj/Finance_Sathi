@@ -4,7 +4,7 @@ import { logger } from '../utils/logger.js';
 
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000, // TODO: Lower to 100 for production
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, _next, options) => {
@@ -15,17 +15,27 @@ export const generalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100, // TODO: Lower to 20 for production
+  max: 100,
   skipSuccessfulRequests: true,
   standardHeaders: true,
   message: { success: false, message: 'Too many auth attempts. Try again in 15 minutes.' }
 });
 
+// Strict limiter for password reset — 3 attempts per hour per IP
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  skipSuccessfulRequests: false,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many password reset attempts. Try again in 1 hour.' }
+});
+
 // Progressive delay for brute force protection
 export const authSlowDown = slowDown({
   windowMs: 15 * 60 * 1000,
-  delayAfter: 20, // TODO: Lower to 2 for production
-  delayMs: (hits) => hits * 500, // 500ms, 1000ms, 1500ms...
+  delayAfter: 20,
+  delayMs: (hits) => hits * 500,
   maxDelayMs: 10000,
   skipSuccessfulRequests: true
 });

@@ -3,6 +3,7 @@ import { validate, authValidators } from '../middleware/validator.js';
 import * as authService from '../services/authService.js';
 import { authenticate } from '../middleware/auth.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/authCookies.js';
+import { passwordResetLimiter } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -120,7 +121,7 @@ router.get('/verify-email', async (req, res, next) => {
 });
 
 // FORGOT PASSWORD
-router.post('/forgot-password', async (req, res, next) => {
+router.post('/forgot-password', passwordResetLimiter, async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
@@ -133,7 +134,7 @@ router.post('/forgot-password', async (req, res, next) => {
 });
 
 // RESET PASSWORD
-router.post('/reset-password', async (req, res, next) => {
+router.post('/reset-password', passwordResetLimiter, async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
     if (!token || !newPassword) return res.status(400).json({ success: false, message: 'Token and new password are required' });
