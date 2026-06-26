@@ -223,7 +223,7 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
 };
 
 export const updateProfile = async (userId, updates) => {
-  const ALLOWED_FIELDS = ['name', 'country', 'language', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance', 'monthlyReportEmail'];
+  const ALLOWED_FIELDS = ['name', 'country', 'monthlyIncomeGoal', 'monthlyExpenseBudget', 'monthlySavingGoal', 'initialBalance', 'monthlyReportEmail'];
 
   const sanitized = Object.fromEntries(
     Object.entries(updates).filter(([key]) => ALLOWED_FIELDS.includes(key))

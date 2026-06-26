@@ -11,17 +11,6 @@ import CustomSelect from '../components/CustomSelect';
 import { COUNTRY_OPTIONS, getCurrencyFromCountry } from '../utils/currency';
 import toast from 'react-hot-toast';
 
-const LANGUAGE_OPTIONS = [
-  { value: 'English',    label: '🇬🇧 English' },
-  { value: 'Nepali',     label: '🇳🇵 Nepali' },
-  { value: 'Hindi',      label: '🇮🇳 Hindi' },
-  { value: 'Spanish',    label: '🇪🇸 Spanish' },
-  { value: 'French',     label: '🇫🇷 French' },
-  { value: 'German',     label: '🇩🇪 German' },
-  { value: 'Japanese',   label: '🇯🇵 Japanese' },
-  { value: 'Chinese',    label: '🇨🇳 Chinese' },
-];
-
 const SectionCard = ({ icon: Icon, title, children, defaultOpen = true }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -72,7 +61,6 @@ const Settings = () => {
   const [form, setForm] = useState({
     name: user?.name || '',
     country: user?.country || '',
-    language: user?.language || 'English',
     monthlyIncomeGoal: user?.monthlyIncomeGoal || '',
     monthlyExpenseBudget: user?.monthlyExpenseBudget || '',
     monthlySavingGoal: user?.monthlySavingGoal || '',
@@ -194,15 +182,6 @@ const Settings = () => {
                 searchable
               />
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Currency is set automatically</p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Language</label>
-              <CustomSelect
-                value={form.language}
-                onChange={val => setForm(p => ({ ...p, language: val }))}
-                options={LANGUAGE_OPTIONS}
-              />
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">UI translation coming soon</p>
             </div>
             <div className="flex items-center justify-between">
               <div>

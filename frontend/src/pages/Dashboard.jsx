@@ -319,7 +319,17 @@ const Dashboard = () => {
         </div>
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {recentTransactions.length === 0 ? (
-            <p className="p-6 text-gray-500 dark:text-gray-400 text-center">No transactions yet</p>
+            <div className="p-8 text-center">
+              <div className="w-14 h-14 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <PiggyBank size={26} className="text-primary-500 dark:text-primary-400" />
+              </div>
+              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">No transactions yet</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Start tracking your finances by adding your first transaction.</p>
+              <a href="/transactions"
+                className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+                Add First Transaction
+              </a>
+            </div>
           ) : (
             recentTransactions.map((txn) => (
               <div key={txn._id} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800">

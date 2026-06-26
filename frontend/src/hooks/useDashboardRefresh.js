@@ -40,8 +40,7 @@ export const useDashboardRefresh = (selectedMonth) => {
       ]);
 
       setSummary(summaryRes.data.data);
-      setRecentTransactions(txnsRes.data.data);
-      setRunningBalance(balanceRes.data.data.runningBalance);
+      setRecentTransactions(txnsRes.data.data);      setRunningBalance(balanceRes.data.data.runningBalance);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load dashboard data');

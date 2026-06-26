@@ -25,7 +25,7 @@ export const createTransaction = async (userId, data) => {
 };
 
 export const getTransactions = async (userId, filters = {}) => {
-  const { month, year, type, page = 1, limit = 50, _t } = filters;
+  const { month, year, type, page = 1, limit = 20, _t } = filters;
   const query = { user: userId };
 
   if (month) query.month = parseInt(month);
@@ -41,17 +41,23 @@ export const getTransactions = async (userId, filters = {}) => {
     if (cached) return JSON.parse(cached);
   }
 
-  const transactions = await Transaction.find(query)
-    .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(parseInt(limit));
+  const pageNum = parseInt(page) || 1;
+  const limitNum = Math.min(parseInt(limit) || 20, 100);
+  const skip = (pageNum - 1) * limitNum;
+
+  const [transactions, total] = await Promise.all([
+    Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+    Transaction.countDocuments(query)
+  ]);
+
+  const result = { data: transactions, pagination: { page: pageNum, limit: limitNum, total } };
 
   if (month && year && !type) {
     const redis = getRedis();
-    await redis.setex(getCacheKey(userId, month, year), 300, JSON.stringify(transactions));
+    await redis.setex(getCacheKey(userId, month, year), 300, JSON.stringify(result));
   }
 
-  return transactions;
+  return result;
 };
 
 export const getMonthlySummary = async (userId, month, year, _t) => {

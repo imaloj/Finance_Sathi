@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { format } from 'date-fns';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CustomSelect from '../components/CustomSelect';
 import DatePicker from '../components/DatePicker';
@@ -63,6 +63,7 @@ const Transactions = () => {
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [filters, setFilters] = useState({ month: '', year: '', type: '' });
+  const [pagination, setPagination] = useState({ page: 1, total: 0, limit: 20 });
   const [formData, setFormData] = useState({
     type: 'expense',
     amount: '',
@@ -75,18 +76,23 @@ const Transactions = () => {
   const currency = user?.currency || 'USD';
 
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchTransactions = useCallback(async (page = pagination.page) => {
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
+      params.append('page', page);
+      params.append('limit', pagination.limit);
       const response = await api.get(`/transactions?${params}`);
       setTransactions(response.data.data);
+      if (response.data.pagination) {
+        setPagination(p => ({ ...p, page, total: response.data.pagination.total }));
+      }
     } catch (err) {
       console.error('Fetch error:', err);
     }
-  }, [filters]);
+  }, [filters, pagination.page, pagination.limit]);
 
   useEffect(() => {
 
@@ -94,8 +100,9 @@ const Transactions = () => {
  
     const m = parseInt(filters.month);
     if (filters.month && (m < 1 || m > 12)) return;
+    setPagination(p => ({ ...p, page: 1 }));
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchTransactions();
+    fetchTransactions(1);
   }, [filters, fetchTransactions]);
 
   const handleSubmit = async (e) => {
@@ -170,6 +177,28 @@ const Transactions = () => {
       })
     : transactions;
 
+  const exportCSV = () => {
+    if (filteredTransactions.length === 0) { toast.error('No transactions to export'); return; }
+    const headers = ['Date', 'Time Added', 'Type', 'Category', 'Description', 'Amount'];
+    const rows = filteredTransactions.map(txn => [
+      format(new Date(txn.date), 'dd MMM yyyy'),
+      format(new Date(txn.createdAt || txn.date), 'hh:mm a'),
+      txn.type,
+      txn.category.replace(/_/g, ' '),
+      txn.description || '',
+      txn.amount,
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transactions_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredTransactions.length} transactions`);
+  };
+
   const inputClass =
     'w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder:text-gray-400 dark:placeholder:text-gray-500';
 
@@ -181,13 +210,22 @@ const Transactions = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Transactions</h2>
           <p className="text-gray-500 dark:text-gray-400">Manage your income, expenses, and savings</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setEditingId(null); setShowModal(true); }}
-          className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
-        >
-          <Plus size={18} />
-          Add Transaction
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
+          >
+            <Download size={16} />
+            Export CSV
+          </button>
+          <button
+            onClick={() => { resetForm(); setEditingId(null); setShowModal(true); }}
+            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          >
+            <Plus size={18} />
+            Add Transaction
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -330,6 +368,34 @@ const Transactions = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {pagination.total > pagination.limit && (
+        <div className="flex items-center justify-between px-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Showing {((pagination.page - 1) * pagination.limit) + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fetchTransactions(pagination.page - 1)}
+              disabled={pagination.page === 1}
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Page {pagination.page} of {Math.ceil(pagination.total / pagination.limit)}
+            </span>
+            <button
+              onClick={() => fetchTransactions(pagination.page + 1)}
+              disabled={pagination.page >= Math.ceil(pagination.total / pagination.limit)}
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Modal */}
       {showModal && (

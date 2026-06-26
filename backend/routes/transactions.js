@@ -18,8 +18,13 @@ router.post('/', validate(transactionValidators.create), async (req, res, next) 
 
 router.get('/', validate(transactionValidators.list), async (req, res, next) => {
   try {
-    const transactions = await transactionService.getTransactions(req.user._id, req.query);
-    res.status(200).json({ success: true, data: transactions });
+    const result = await transactionService.getTransactions(req.user._id, req.query);
+    // Support both old format (array) and new format (object with pagination)
+    if (Array.isArray(result)) {
+      res.status(200).json({ success: true, data: result });
+    } else {
+      res.status(200).json({ success: true, data: result.data, pagination: result.pagination });
+    }
   } catch (error) {
     next(error);
   }

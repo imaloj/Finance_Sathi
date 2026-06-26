@@ -31,11 +31,6 @@ const userSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
-  language: {
-    type: String,
-    default: 'English',
-    trim: true,
-  },
   monthlyIncomeGoal: {
     type: Number,
     default: 0,
