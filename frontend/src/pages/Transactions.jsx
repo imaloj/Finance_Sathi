@@ -76,7 +76,7 @@ const Transactions = () => {
   const currency = user?.currency || 'USD';
 
 
-  const fetchTransactions = useCallback(async (page = pagination.page) => {
+  const fetchTransactions = useCallback(async (page = 1) => {
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -86,13 +86,15 @@ const Transactions = () => {
       params.append('limit', pagination.limit);
       const response = await api.get(`/transactions?${params}`);
       setTransactions(response.data.data);
-      if (response.data.pagination) {
-        setPagination(p => ({ ...p, page, total: response.data.pagination.total }));
-      }
+      setPagination(p => ({
+        ...p,
+        page,
+        total: response.data.pagination?.total ?? response.data.data.length,
+      }));
     } catch (err) {
       console.error('Fetch error:', err);
     }
-  }, [filters, pagination.page, pagination.limit]);
+  }, [filters, pagination.limit]);
 
   useEffect(() => {
 
@@ -100,7 +102,6 @@ const Transactions = () => {
  
     const m = parseInt(filters.month);
     if (filters.month && (m < 1 || m > 12)) return;
-    setPagination(p => ({ ...p, page: 1 }));
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTransactions(1);
   }, [filters, fetchTransactions]);

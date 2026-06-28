@@ -232,7 +232,7 @@ const Dashboard = () => {
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">Distribution</h3>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Breakdown of this month</p>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <defs>
                 {GRADIENTS.map(g => (
@@ -246,29 +246,47 @@ const Dashboard = () => {
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={62}
-                outerRadius={95}
-                paddingAngle={3}
+                innerRadius={72}
+                outerRadius={105}
+                paddingAngle={6}
+                cornerRadius={14}
                 dataKey="value"
                 strokeWidth={0}
                 onMouseEnter={(_, index) => setActivePieIndex(index)}
                 onMouseLeave={() => setActivePieIndex(null)}
+                label={({ cx, cy, midAngle, outerRadius: r, percent, index: i }) => {
+                  const RAD = Math.PI / 180;
+                  const x = cx + (r + 22) * Math.cos(-midAngle * RAD);
+                  const y = cy + (r + 22) * Math.sin(-midAngle * RAD);
+                  if (percent < 0.04) return null;
+                  return (
+                    <text x={x} y={y} fill={COLORS[i]} textAnchor="middle" dominantBaseline="central"
+                      fontSize="12" fontWeight="700">
+                      {`${(percent * 100).toFixed(0)}%`}
+                    </text>
+                  );
+                }}
+                labelLine={false}
               >
                 {chartData.map((entry, index) => (
                   <RechartsCell
                     key={index}
                     fill={`url(#r-${GRADIENTS[index].id})`}
-                    opacity={activePieIndex === null || activePieIndex === index ? 1 : 0.45}
-                    style={{ transition: 'opacity 0.2s, transform 0.2s', transformOrigin: 'center',
-                      transform: activePieIndex === index ? 'scale(1.04)' : 'scale(1)' }}
+                    opacity={activePieIndex === null || activePieIndex === index ? 1 : 0.35}
+                    style={{
+                      transition: 'opacity 0.2s, transform 0.2s',
+                      transformOrigin: 'center',
+                      transform: activePieIndex === index ? 'scale(1.05)' : 'scale(1)',
+                      filter: activePieIndex === index ? `drop-shadow(0 4px 12px ${COLORS[index]}66)` : 'none',
+                    }}
                   />
                 ))}
                 <PieCenterLabel activePieIndex={activePieIndex} chartData={chartData} summary={summary} axisColor={axisColor} currency={currency} />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          {/* Custom legend with amounts */}
-          <div className="flex justify-center gap-5 mt-2">
+          {/* Legend */}
+          <div className="flex justify-center gap-5 mt-1">
             {chartData.map((item, idx) => (
               <div key={item.name} className="flex flex-col items-center gap-0.5">
                 <div className="flex items-center gap-1.5">
