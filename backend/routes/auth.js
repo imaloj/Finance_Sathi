@@ -97,6 +97,19 @@ router.get('/me', authenticate, async (req, res, next) => {
   }
 });
 
+// DELETE ACCOUNT
+router.delete('/account', authenticate, async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ success: false, message: 'Password is required to delete your account' });
+    await authService.deleteAccount(req.user._id, password);
+    clearAuthCookies(res);
+    res.status(200).json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // UPDATE PROFILE
 router.put('/profile', authenticate, async (req, res, next) => {
   try {
