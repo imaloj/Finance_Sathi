@@ -315,7 +315,6 @@ const Settings = () => {
               )}
             </div>
           )}
-        </div>
       </SectionCard>
 
       {/* ── Two-column grid (collapses on mobile) ── */}
