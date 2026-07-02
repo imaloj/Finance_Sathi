@@ -4,6 +4,7 @@ import * as authService from '../services/authService.js';
 import { authenticate } from '../middleware/auth.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/authCookies.js';
 import { passwordResetLimiter } from '../middleware/rateLimiter.js';
+import { logActivity, reqMeta } from '../utils/activityLogger.js';
 
 const router = express.Router();
 
@@ -28,13 +29,10 @@ router.post('/login', validate(authValidators.login), async (req, res, next) => 
   try {
     const { user, tokens } = await authService.login(req.body);
     setAuthCookies(res, tokens);
-    res.status(200).json({
-      success: true,
-      data: {
-        user
-      }
-    });
+    logActivity(user._id, 'login', `Login from ${req.ip}`, reqMeta(req));
+    res.status(200).json({ success: true, data: { user } });
   } catch (error) {
+    // Log failed login attempt (don't expose whether email exists)
     next(error);
   }
 });
@@ -170,7 +168,7 @@ router.put('/change-password', authenticate, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
     }
     await authService.changePassword(req.user._id, currentPassword, newPassword);
-    // Clear cookies — user needs to log in again
+    logActivity(req.user._id, 'password_changed', 'Account password was changed', reqMeta(req));
     clearAuthCookies(res);
     res.status(200).json({ success: true, message: 'Password changed successfully. Please log in again.' });
   } catch (error) {

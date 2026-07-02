@@ -16,6 +16,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import reportRoutes from './routes/reports.js';
+import activityLogRoutes from './routes/activityLog.js';
 import { logger } from './utils/logger.js';
 import { startCronJobs } from './services/cronService.js';
 
@@ -133,6 +134,7 @@ app.get('/api/debug/health', (req, res) => {
 app.use('/api/auth', authLimiter, authSlowDown, authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/activity-log', activityLogRoutes);
 
 // 404 & Error Handler
 app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));

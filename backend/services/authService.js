@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import { getRedis } from '../config/redis.js';
 import { getCurrencyFromCountry } from '../utils/currency.js';
@@ -147,6 +148,21 @@ export const logout = async (accessToken, refreshToken) => {
 
 export const logoutAll = async (userId) => {
   await User.findByIdAndUpdate(userId, { refreshTokens: [] });
+  return true;
+};
+
+export const setActivityPin = async (userId, pin) => {
+  if (!/^\d{6}$/.test(pin)) throw Object.assign(new Error('PIN must be exactly 6 digits'), { statusCode: 400 });
+  const hashed = await bcrypt.hash(pin, 10);
+  await User.findByIdAndUpdate(userId, { activityLogPin: hashed, hasActivityLogPin: true });
+  return true;
+};
+
+export const verifyActivityPin = async (userId, pin) => {
+  const user = await User.findById(userId).select('+activityLogPin');
+  if (!user || !user.hasActivityLogPin) throw Object.assign(new Error('PIN not set'), { statusCode: 400 });
+  const match = await bcrypt.compare(String(pin), user.activityLogPin);
+  if (!match) throw Object.assign(new Error('Incorrect PIN'), { statusCode: 401 });
   return true;
 };
 

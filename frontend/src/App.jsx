@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import AppLoader from './components/AppLoader';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ActivityLog from './pages/ActivityLog';
 
 const ThemedToaster = () => {
   const { isDark } = useTheme();
@@ -96,6 +97,7 @@ function AppRoutes() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="reports"      element={<MonthlyReport />} />
           <Route path="settings"     element={<Settings />} />
+          <Route path="activity-log" element={<ActivityLog />} />
         </Route>
       </Routes>
     </>

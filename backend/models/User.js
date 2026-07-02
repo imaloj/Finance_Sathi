@@ -56,6 +56,14 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     expiresAt: Date
   }],
+  activityLogPin: {
+    type: String,
+    select: false
+  },
+  hasActivityLogPin: {
+    type: Boolean,
+    default: false
+  },
   passwordResetToken: {
     type: String,
     select: false

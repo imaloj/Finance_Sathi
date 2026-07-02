@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { validate, transactionValidators } from '../middleware/validator.js';
 import * as transactionService from '../services/transactionService.js';
+import { logActivity, reqMeta } from '../utils/activityLogger.js';
 
 const router = express.Router();
 router.use(authenticate);
@@ -9,11 +10,13 @@ router.use(authenticate);
 router.post('/', validate(transactionValidators.create), async (req, res, next) => {
   try {
     const transaction = await transactionService.createTransaction(req.user._id, req.body);
-    const populated= await transaction.populate('user','name currency');
+    const populated = await transaction.populate('user', 'name currency');
+    logActivity(req.user._id, 'transaction_added',
+      `Added ${transaction.type}: ${transaction.category} — ${transaction.amount}`,
+      { ...reqMeta(req), metadata: { type: transaction.type, amount: transaction.amount, category: transaction.category } }
+    );
     res.status(201).json({ success: true, data: populated });
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
 router.get('/', validate(transactionValidators.list), async (req, res, next) => {
@@ -63,19 +66,17 @@ router.get('/running-balance', async (req, res, next) => {
 router.put('/:id', validate(transactionValidators.update), async (req, res, next) => {
   try {
     const transaction = await transactionService.updateTransaction(req.user._id, req.params.id, req.body);
+    logActivity(req.user._id, 'transaction_edited', `Edited transaction: ${transaction.category}`, reqMeta(req));
     res.status(200).json({ success: true, data: transaction });
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
 router.delete('/:id', async (req, res, next) => {
   try {
     await transactionService.deleteTransaction(req.user._id, req.params.id);
+    logActivity(req.user._id, 'transaction_deleted', `Deleted transaction ID: ${req.params.id}`, reqMeta(req));
     res.status(200).json({ success: true, message: 'Transaction deleted' });
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
 export default router;

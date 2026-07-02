@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useAuth from '../hooks/useAuth';
 import useTheme from '../hooks/useTheme';
 import api from '../services/api';
+import { useNavigate } from 'react-router-dom';
 import {
   Save, Lock, Eye, EyeOff, Mail, User,
-  Globe, Bell, ShieldCheck, ChevronDown, ChevronUp, Trash2
+  Globe, Bell, ShieldCheck, ChevronDown, ChevronUp, Trash2, ClipboardList
 } from 'lucide-react';
 import ThemeSwitch from '../components/ThemeSwitch';
 import CustomSelect from '../components/CustomSelect';
@@ -54,6 +55,7 @@ const Toggle = ({ checked, onChange, label, description }) => (
 const Settings = () => {
   const { user, updateUser, logout } = useAuth();
   const { isDark } = useTheme();
+  const navigate = useNavigate();
 
   const inputClass = 'w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500';
 
@@ -81,6 +83,28 @@ const Settings = () => {
   const [showDeletePw, setShowDeletePw] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [deleteAttempts, setDeleteAttempts] = useState(0);
+  const [deleteLockUntil, setDeleteLockUntil] = useState(null);
+  const [deletePasswordError, setDeletePasswordError] = useState('');
+
+  const [now, setNow] = useState(() => Date.now());
+  // Update "now" every 30 seconds so the countdown stays fresh
+  useEffect(() => {
+    if (!deleteLockUntil) return;
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, [deleteLockUntil]);
+
+  const MAX_DELETE_ATTEMPTS = 3;
+  const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+
+  const isDeleteLocked = deleteLockUntil && now < deleteLockUntil;
+  const lockMinutesLeft = isDeleteLocked
+    ? Math.ceil((deleteLockUntil - now) / 60000)
+    : 0;
+
+  const confirmTextMatch = deleteConfirmText === 'DELETE MY ACCOUNT';
+  const confirmTextTouched = deleteConfirmText.length > 0;
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -111,17 +135,31 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteAccount = async (e) => {
-    e.preventDefault();
-    if (deleteConfirmText !== 'DELETE MY ACCOUNT') { toast.error('Type DELETE MY ACCOUNT to confirm'); return; }
+  const handleDeleteAccount = async () => {
+    if (isDeleteLocked) return;
+    if (!confirmTextMatch) { toast.error('Type DELETE MY ACCOUNT to confirm'); return; }
     if (!deletePassword) { toast.error('Password is required'); return; }
     setDeleting(true);
+    setDeletePasswordError('');
     try {
       await api.delete('/auth/account', { data: { password: deletePassword } });
       toast.success('Account deleted');
       setTimeout(() => logout(), 1000);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Deletion failed');
+      const msg = err.response?.data?.message || 'Deletion failed';
+      const newAttempts = deleteAttempts + 1;
+      setDeleteAttempts(newAttempts);
+      if (newAttempts >= MAX_DELETE_ATTEMPTS) {
+        const lockUntil = Date.now() + COOLDOWN_MS;
+        setDeleteLockUntil(lockUntil);
+        setDeleteAttempts(0);
+        setDeletePassword('');
+        setDeleteConfirmText('');
+        toast.error('Too many failed attempts. Try again in 1 hour.');
+      } else {
+        setDeletePasswordError(msg);
+        toast.error(`${msg} (${MAX_DELETE_ATTEMPTS - newAttempts} attempt${MAX_DELETE_ATTEMPTS - newAttempts !== 1 ? 's' : ''} remaining)`);
+      }
     } finally {
       setDeleting(false);
     }
@@ -178,8 +216,16 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Delete account — inline at bottom of Account Settings */}
-        <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+        {/* Activity Log + Delete account — inline at bottom of Account Settings */}
+        <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate('/activity-log')}
+            className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors font-medium"
+          >
+            <ClipboardList size={13} />
+            Activity Log
+          </button>
           <button
             type="button"
             onClick={() => setDeleteOpen(p => !p)}
@@ -189,49 +235,85 @@ const Settings = () => {
             Delete Account
             {deleteOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
+        </div>
 
           {deleteOpen && (
-            <form onSubmit={handleDeleteAccount} className="mt-3 space-y-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                This permanently deletes your account and all data. <strong>Cannot be undone.</strong>
-              </p>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Type <span className="font-bold text-red-600">DELETE MY ACCOUNT</span> to confirm
-                </label>
-                <input
-                  type="text"
-                  value={deleteConfirmText}
-                  onChange={e => setDeleteConfirmText(e.target.value)}
-                  className="w-full border border-red-300 dark:border-red-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-red-500 placeholder:text-gray-400"
-                  placeholder="DELETE MY ACCOUNT"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Your password</label>
-                <div className="relative">
-                  <input
-                    type={showDeletePw ? 'text' : 'password'}
-                    value={deletePassword}
-                    onChange={e => setDeletePassword(e.target.value)}
-                    className="w-full border border-red-300 dark:border-red-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 pr-9 text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="••••••••"
-                  />
-                  <button type="button" onClick={() => setShowDeletePw(p => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    {showDeletePw ? <EyeOff size={13} /> : <Eye size={13} />}
-                  </button>
+            <div className="mt-3 space-y-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
+              {isDeleteLocked ? (
+                <div className="text-center py-2">
+                  <p className="text-sm font-medium text-red-600 dark:text-red-400">Account deletion locked</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Too many failed attempts. Try again in <strong>{lockMinutesLeft} minute{lockMinutesLeft !== 1 ? 's' : ''}</strong>.
+                  </p>
                 </div>
-              </div>
-              <button
-                type="submit"
-                disabled={deleting || deleteConfirmText !== 'DELETE MY ACCOUNT' || !deletePassword}
-                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Trash2 size={12} />
-                {deleting ? 'Deleting…' : 'Delete My Account'}
-              </button>
-            </form>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    This permanently deletes your account and all data. <strong>Cannot be undone.</strong>
+                  </p>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Type <span className="font-bold text-red-600">DELETE MY ACCOUNT</span> to confirm
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={e => setDeleteConfirmText(e.target.value)}
+                      className={`w-full rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 placeholder:text-gray-400
+                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                        ${confirmTextTouched && !confirmTextMatch
+                          ? 'border border-red-500 focus:ring-red-400'
+                          : confirmTextMatch
+                          ? 'border border-green-500 focus:ring-green-400'
+                          : 'border border-red-300 dark:border-red-700 focus:ring-red-500'
+                        }`}
+                      placeholder="DELETE MY ACCOUNT"
+                    />
+                    {confirmTextTouched && !confirmTextMatch && (
+                      <p className="text-xs text-red-500 mt-1">Text doesn&apos;t match. Type exactly: DELETE MY ACCOUNT</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Your password</label>
+                    <div className="relative">
+                      <input
+                        type={showDeletePw ? 'text' : 'password'}
+                        value={deletePassword}
+                        onChange={e => { setDeletePassword(e.target.value); setDeletePasswordError(''); }}
+                        className={`w-full rounded-lg px-3 py-2 pr-9 text-xs focus:outline-none focus:ring-2 placeholder:text-gray-400
+                          bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                          ${deletePasswordError
+                            ? 'border border-red-500 focus:ring-red-400'
+                            : 'border border-red-300 dark:border-red-700 focus:ring-red-500'
+                          }`}
+                        placeholder="••••••••"
+                      />
+                      <button type="button" onClick={() => setShowDeletePw(p => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        {showDeletePw ? <EyeOff size={13} /> : <Eye size={13} />}
+                      </button>
+                    </div>
+                    {deletePasswordError && (
+                      <p className="text-xs text-red-500 mt-1">{deletePasswordError}</p>
+                    )}
+                    {deleteAttempts > 0 && (
+                      <p className="text-xs text-orange-500 dark:text-orange-400 mt-1">
+                        {MAX_DELETE_ATTEMPTS - deleteAttempts} attempt{MAX_DELETE_ATTEMPTS - deleteAttempts !== 1 ? 's' : ''} remaining before 1-hour lockout
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    disabled={deleting || !confirmTextMatch || !deletePassword}
+                    className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 size={12} />
+                    {deleting ? 'Deleting…' : 'Delete My Account'}
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
       </SectionCard>
