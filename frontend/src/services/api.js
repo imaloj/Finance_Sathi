@@ -13,11 +13,13 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+    const isActivityLogVerify = originalRequest.url?.includes('/activity-log/verify');
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isAuthEndpoint
+      !isAuthEndpoint &&
+      !isActivityLogVerify
     ) {
       originalRequest._retry = true;
 

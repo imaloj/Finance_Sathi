@@ -5,27 +5,27 @@ import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import {
   Save, Lock, Eye, EyeOff, Mail, User,
-  Globe, Bell, ShieldCheck, ChevronDown, ChevronUp, Trash2, ClipboardList
+  Globe, Bell, ShieldCheck, ChevronDown, ChevronUp, Trash2, ClipboardList, Pencil
 } from 'lucide-react';
 import ThemeSwitch from '../components/ThemeSwitch';
 import CustomSelect from '../components/CustomSelect';
 import { COUNTRY_OPTIONS, getCurrencyFromCountry } from '../utils/currency';
 import toast from 'react-hot-toast';
 
-const SectionCard = ({ icon: Icon, title, children, defaultOpen = true }) => {
+const SectionCard = ({ icon: Icon, title, children, defaultOpen = true, collapsible = true }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen(p => !p)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left"
+        onClick={() => collapsible && setOpen(p => !p)}
+        className={`w-full flex items-center justify-between px-5 py-4 text-left ${!collapsible ? 'cursor-default' : ''}`}
       >
         <div className="flex items-center gap-2">
           <Icon size={17} className="text-primary-600 dark:text-primary-400" />
           <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</span>
         </div>
-        {open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+        {collapsible && (open ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />)}
       </button>
       {open && <div className="px-5 pb-5 space-y-4 border-t border-gray-100 dark:border-gray-700 pt-4">{children}</div>}
     </div>
@@ -192,19 +192,26 @@ const Settings = () => {
 
       {/* ── Account Settings (full width) ── */}
       <SectionCard icon={User} title="Account Settings">
-        <div className="flex items-center gap-4 mb-4">
-          {/* Avatar placeholder */}
-          <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-bold shrink-0">
-            {(user?.name?.[0] || '?').toUpperCase()}
+        <div className="max-h-64 overflow-y-auto pr-1 space-y-4">
+          <div className="flex items-center gap-4">
+            {/* Avatar placeholder */}
+            <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-bold shrink-0">
+              {(user?.name?.[0] || '?').toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
-          </div>
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Full Name</label>
+            <label className="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              Full Name
+              <span className="inline-flex items-center gap-0.5 text-primary-500 dark:text-primary-400">
+                <Pencil size={10} />
+                <span className="text-[10px] font-normal">editable</span>
+              </span>
+            </label>
             <input type="text" value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
               className={inputClass} />
@@ -216,8 +223,9 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Activity Log + Delete account — inline at bottom of Account Settings */}
-        <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        {/* Activity Log + Delete account — stacked, delete deliberately subdued */}
+        <div className="pt-3 border-t border-gray-100 dark:border-gray-700 space-y-3">
+          {/* Activity Log — prominent */}
           <button
             type="button"
             onClick={() => navigate('/activity-log')}
@@ -226,16 +234,21 @@ const Settings = () => {
             <ClipboardList size={13} />
             Activity Log
           </button>
-          <button
-            type="button"
-            onClick={() => setDeleteOpen(p => !p)}
-            className="flex items-center gap-2 text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-          >
-            <Trash2 size={13} />
-            Delete Account
-            {deleteOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
+
+          {/* Delete Account — deliberately muted and separated */}
+          <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+            <button
+              type="button"
+              onClick={() => setDeleteOpen(p => !p)}
+              className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={12} />
+              <span>Delete Account</span>
+              {deleteOpen ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            </button>
+          </div>
         </div>
+        </div> {/* end scrollable wrapper */}
 
           {deleteOpen && (
             <div className="mt-3 space-y-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
