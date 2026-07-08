@@ -10,6 +10,7 @@ import useAuth from '../hooks/useAuth';
 import useTheme from '../hooks/useTheme';
 import CustomSelect from '../components/CustomSelect';
 import SpendingTrends from '../components/SpendingTrends';
+import DueRecurringBanner from '../components/DueRecurringBanner';
 import { formatCurrency } from '../utils/currency';
 
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
@@ -104,7 +105,7 @@ const PieCenterLabel = ({ activePieIndex, chartData, summary, axisColor, currenc
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [activePieIndex, setActivePieIndex] = useState(null);
-  const { summary, recentTransactions, runningBalance, loading, currentYear, activeMonth } = useDashboardRefresh(selectedMonth);
+  const { summary, recentTransactions, runningBalance, loading, currentYear, activeMonth, fetchDashboardData } = useDashboardRefresh(selectedMonth);
   const { user } = useAuth();
   const currency = user?.currency || 'USD';
   const { isDark } = useTheme();
@@ -149,6 +150,9 @@ const Dashboard = () => {
           />
         </div>
       </div>
+
+      {/* Due Recurring Transactions */}
+      <DueRecurringBanner onTransactionAdded={() => fetchDashboardData({ silent: true, cacheBuster: true })} />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

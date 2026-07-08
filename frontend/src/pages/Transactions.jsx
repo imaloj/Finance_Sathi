@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { format } from 'date-fns';
-import { Plus, Pencil, Trash2, X, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Download, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CustomSelect from '../components/CustomSelect';
 import DatePicker from '../components/DatePicker';
@@ -70,6 +70,8 @@ const Transactions = () => {
     category: '',
     description: '',
     date: format(new Date(), 'yyyy-MM-dd'),
+    isRecurring: false,
+    recurringFrequency: 'monthly',
   });
 
   const { user } = useAuth();
@@ -114,8 +116,18 @@ const Transactions = () => {
         await api.put(`/transactions/${editingId}`, formData);
       } else {
         const response = await api.post('/transactions', formData);
-    
         window.dispatchEvent(new CustomEvent('dashboard:optimistic-add', { detail: response.data.data }));
+        // If marked recurring, also create a recurring template
+        if (formData.isRecurring) {
+          await api.post('/recurring', {
+            type: formData.type,
+            amount: formData.amount,
+            category: formData.category,
+            description: formData.description,
+            frequency: formData.recurringFrequency,
+            startDate: formData.date,
+          });
+        }
       }
       setShowModal(false);
       setEditingId(null);
@@ -164,6 +176,8 @@ const Transactions = () => {
       category: '',
       description: '',
       date: format(new Date(), 'yyyy-MM-dd'),
+      isRecurring: false,
+      recurringFrequency: 'monthly',
     });
   };
 
@@ -212,6 +226,13 @@ const Transactions = () => {
           <p className="text-gray-500 dark:text-gray-400">Manage your income, expenses, and savings</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => window.location.href = '/recurring'}
+            className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
+          >
+            <RefreshCw size={15} />
+            Recurring
+          </button>
           <button
             onClick={exportCSV}
             className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
@@ -485,6 +506,45 @@ const Transactions = () => {
                 }`}>
                   {formData.description.length}/200
                 </p>
+              </div>
+
+              {/* Recurring */}
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                      <RefreshCw size={14} className="text-primary-500" />
+                      Recurring
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Remind me to add this regularly</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(p => ({ ...p, isRecurring: !p.isRecurring }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                      formData.isRecurring ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.isRecurring ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+                {formData.isRecurring && (
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency</label>
+                    <CustomSelect
+                      value={formData.recurringFrequency}
+                      onChange={val => setFormData(p => ({ ...p, recurringFrequency: val }))}
+                      options={[
+                        { value: 'weekly',   label: 'Every Week' },
+                        { value: 'biweekly', label: 'Every 2 Weeks' },
+                        { value: 'monthly',  label: 'Every Month' },
+                        { value: 'yearly',   label: 'Every Year' },
+                      ]}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Actions */}

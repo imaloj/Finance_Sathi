@@ -16,6 +16,7 @@ import AppLoader from './components/AppLoader';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ActivityLog from './pages/ActivityLog';
+import RecurringTransactions from './pages/RecurringTransactions';
 
 const ThemedToaster = () => {
   const { isDark } = useTheme();
@@ -95,6 +96,7 @@ function AppRoutes() {
         <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
           <Route index element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />
+          <Route path="recurring" element={<RecurringTransactions />} />
           <Route path="reports"      element={<MonthlyReport />} />
           <Route path="settings"     element={<Settings />} />
           <Route path="activity-log" element={<ActivityLog />} />

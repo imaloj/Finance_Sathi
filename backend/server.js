@@ -17,6 +17,7 @@ import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import reportRoutes from './routes/reports.js';
 import activityLogRoutes from './routes/activityLog.js';
+import recurringRoutes from './routes/recurring.js';
 import { logger } from './utils/logger.js';
 import { startCronJobs } from './services/cronService.js';
 
@@ -135,6 +136,7 @@ app.use('/api/auth', authLimiter, authSlowDown, authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/activity-log', activityLogRoutes);
+app.use('/api/recurring', recurringRoutes);
 
 // 404 & Error Handler
 app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
