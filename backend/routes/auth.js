@@ -5,6 +5,7 @@ import { authenticate } from '../middleware/auth.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/authCookies.js';
 import { passwordResetLimiter } from '../middleware/rateLimiter.js';
 import { logActivity, reqMeta } from '../utils/activityLogger.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -103,6 +104,44 @@ router.delete('/account', authenticate, async (req, res, next) => {
     await authService.deleteAccount(req.user._id, password);
     clearAuthCookies(res);
     res.status(200).json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// UPLOAD AVATAR
+router.put('/avatar', authenticate, async (req, res, next) => {
+  try {
+    const { avatar } = req.body;
+    if (!avatar) return res.status(400).json({ success: false, message: 'Avatar data required' });
+    // Validate it's a base64 image (basic check)
+    if (!avatar.startsWith('data:image/')) {
+      return res.status(400).json({ success: false, message: 'Invalid image format' });
+    }
+    // Rough size check — base64 is ~1.37x raw size, limit to ~200KB base64 (~145KB image)
+    if (avatar.length > 200000) {
+      return res.status(400).json({ success: false, message: 'Image too large. Please compress before uploading.' });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { avatar } },
+      { new: true }
+    );
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// REMOVE AVATAR
+router.delete('/avatar', authenticate, async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { avatar: null } },
+      { new: true }
+    );
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
     next(error);
   }

@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  avatar: {
+    type: String,  // base64 data URL
+    default: null,
+  },
   monthlyIncomeGoal: {
     type: Number,
     default: 0,

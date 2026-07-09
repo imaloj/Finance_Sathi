@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import useTheme from '../hooks/useTheme';
 import { LayoutDashboard, Receipt, PieChart, Settings, LogOut, Menu, X } from 'lucide-react';
+import Avatar from './Avatar';
 
 const navItems = [
   { path: '/',             label: 'Dashboard',   icon: LayoutDashboard },
@@ -60,9 +61,12 @@ const Layout = () => {
 
         {/* User / Logout */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="mb-3 px-4">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+          <div className="mb-3 px-2 flex items-center gap-3">
+            <Avatar user={user} size="sm" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+            </div>
           </div>
           <button
             onClick={logout}
@@ -103,11 +107,14 @@ const Layout = () => {
           <NavLinks currentPath={pathname} onNavigate={() => setSidebarOpen(false)} />
         </nav>
 
-        {/* User / Logout */}
+        {/* User / Logout — mobile drawer */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="mb-3 px-4">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+          <div className="mb-3 px-2 flex items-center gap-3">
+            <Avatar user={user} size="sm" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+            </div>
           </div>
           <button
             onClick={() => { setSidebarOpen(false); logout(); }}

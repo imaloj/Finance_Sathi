@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import ThemeSwitch from '../components/ThemeSwitch';
 import CustomSelect from '../components/CustomSelect';
+import AvatarUpload from '../components/AvatarUpload';
 import { COUNTRY_OPTIONS, getCurrencyFromCountry } from '../utils/currency';
 import toast from 'react-hot-toast';
 
@@ -193,16 +194,7 @@ const Settings = () => {
       {/* ── Account Settings (full width) ── */}
       <SectionCard icon={User} title="Account Settings">
         <div className="max-h-64 overflow-y-auto pr-1 space-y-4">
-          <div className="flex items-center gap-4">
-            {/* Avatar placeholder */}
-            <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-bold shrink-0">
-              {(user?.name?.[0] || '?').toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
-            </div>
-          </div>
+          <AvatarUpload />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
