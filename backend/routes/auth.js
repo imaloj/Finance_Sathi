@@ -109,6 +109,28 @@ router.delete('/account', authenticate, async (req, res, next) => {
   }
 });
 
+// RESET ACTIVITY LOG PIN (verify account password first)
+router.post('/reset-activity-pin', authenticate, async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ success: false, message: 'Account password required' });
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ success: false, message: 'Incorrect password' });
+
+    user.activityLogPin = undefined;
+    user.hasActivityLogPin = false;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Activity PIN reset. Please set a new PIN.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // UPLOAD AVATAR
 router.put('/avatar', authenticate, async (req, res, next) => {
   try {
