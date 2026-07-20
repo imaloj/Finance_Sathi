@@ -271,6 +271,9 @@ const ActivityLog = () => {
                       {log.description && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{log.description}</p>
                       )}
+                      {log.userAgent && log.userAgent !== 'Unknown device' && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{log.userAgent}</p>
+                      )}
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs text-gray-500 dark:text-gray-400">{format(new Date(log.createdAt), 'dd MMM yyyy')}</p>
