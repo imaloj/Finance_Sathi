@@ -6,6 +6,7 @@ import AIReport from '../models/AIReport.js';
 import User from '../models/User.js';
 import Transaction from '../models/Transaction.js';
 import mongoose from 'mongoose';
+import { logActivity, reqMeta } from '../utils/activityLogger.js';
 
 const router = express.Router();
 router.use(authenticate);
@@ -15,6 +16,10 @@ router.post('/generate/:year/:month', async (req, res, next) => {
   try {
     const { year, month } = req.params;
     const report = await generateMonthlyReport(req.user._id, parseInt(month), parseInt(year));
+    logActivity(req.user._id, 'ai_report_generated',
+      `AI report generated for ${month}/${year}`,
+      reqMeta(req)
+    );
     res.status(200).json({ success: true, data: report });
   } catch (error) {
     next(error);
@@ -109,7 +114,12 @@ router.get('/pdf/:year/:month', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
-    
+
+    logActivity(req.user._id, 'report_downloaded',
+      `PDF report downloaded for ${month}/${year}`,
+      reqMeta(req)
+    );
+
     res.send(pdfBuffer);
     
   } catch (error) {

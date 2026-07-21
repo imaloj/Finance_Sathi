@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import {
   Shield, Lock, RotateCcw, LogIn, LogOut, Key,
-  Settings, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, ChevronLeft
+  Settings, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, ChevronLeft,
+  Sparkles, Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -24,6 +25,8 @@ const EVENT_META = {
   account_deletion_failed:  { icon: AlertTriangle, color: 'text-red-600 dark:text-red-400',        bg: 'bg-red-50 dark:bg-red-900/20',         label: 'Deletion Attempt Failed' },
   activity_pin_set:         { icon: Lock,          color: 'text-primary-600 dark:text-primary-400',bg: 'bg-primary-50 dark:bg-primary-900/20', label: 'Activity PIN Set' },
   activity_log_accessed:    { icon: Eye,           color: 'text-gray-500 dark:text-gray-400',      bg: 'bg-gray-50 dark:bg-gray-800',          label: 'Activity Log Accessed' },
+  ai_report_generated:      { icon: Sparkles,      color: 'text-purple-600 dark:text-purple-400',  bg: 'bg-purple-50 dark:bg-purple-900/20',   label: 'AI Report Generated' },
+  report_downloaded:        { icon: Download,      color: 'text-indigo-600 dark:text-indigo-400',  bg: 'bg-indigo-50 dark:bg-indigo-900/20',   label: 'Report Downloaded' },
 };
 
 const STAGES = { SET_PIN: 'set_pin', CONFIRM_PIN: 'confirm_pin', ENTER_PIN: 'enter_pin', LOG: 'log' };

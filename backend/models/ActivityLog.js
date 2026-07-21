@@ -24,6 +24,8 @@ const activityLogSchema = new mongoose.Schema({
       'account_deletion_failed',
       'activity_pin_set',
       'activity_log_accessed',
+      'ai_report_generated',
+      'report_downloaded',
     ]
   },
   description: { type: String, trim: true },
