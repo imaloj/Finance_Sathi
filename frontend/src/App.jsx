@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } fro
 import { AuthProvider } from './context/AuthContext';
 import useAuth from './hooks/useAuth';
 import useTheme from './hooks/useTheme';
+import useIdleTimeout from './hooks/useIdleTimeout';
 import { Toaster } from 'react-hot-toast';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
@@ -71,8 +72,25 @@ function App() {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, loading, updateUser } = useAuth();
+  const { isAuthenticated, loading, updateUser, logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Idle timeout — log out after 10 min of inactivity, warn at 9 min
+  useIdleTimeout(
+    () => {
+      toast('Logged out due to inactivity', { icon: '🔒' });
+      logout();
+    },
+    10 * 60 * 1000, // 10 minutes
+    isAuthenticated
+  );
+
+  // Warn user 1 minute before logout
+  useIdleTimeout(
+    () => { toast('You will be logged out in 1 minute due to inactivity', { icon: '⚠️', duration: 8000 }); },
+    9 * 60 * 1000,  // 9 minutes
+    isAuthenticated
+  );
 
   // Show toast when redirected back after email verification
   useEffect(() => {
