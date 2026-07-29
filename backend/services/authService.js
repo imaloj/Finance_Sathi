@@ -151,6 +151,19 @@ export const logoutAll = async (userId) => {
   return true;
 };
 
+export const resetActivityPin = async (userId, password) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw Object.assign(new Error('Incorrect password'), { statusCode: 401 });
+
+  user.activityLogPin = undefined;
+  user.hasActivityLogPin = false;
+  await user.save();
+  return true;
+};
+
 export const setActivityPin = async (userId, pin) => {
   if (!/^\d{6}$/.test(pin)) throw Object.assign(new Error('PIN must be exactly 6 digits'), { statusCode: 400 });
   const hashed = await bcrypt.hash(pin, 10);

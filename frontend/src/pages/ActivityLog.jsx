@@ -29,100 +29,35 @@ const EVENT_META = {
   report_downloaded:        { icon: Download,      color: 'text-indigo-600 dark:text-indigo-400',  bg: 'bg-indigo-50 dark:bg-indigo-900/20',   label: 'Report Downloaded' },
 };
 
-const STAGES = { SET_PIN: 'set_pin', CONFIRM_PIN: 'confirm_pin', ENTER_PIN: 'enter_pin', LOG: 'log' };
+const STAGES = { SET_PIN: 'set_pin', CONFIRM_PIN: 'confirm_pin', ENTER_PIN: 'enter_pin', FORGOT_PIN: 'forgot_pin', LOG: 'log' };
 const MAX_ATTEMPTS = 5;
 
-// ── ForgotPinForm — inline password verification ──
-const ForgotPinForm = ({ onSuccess, onCancel }) => {
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!password) return;
-    setLoading(true);
-    setError('');
-    try {
-      await api.post('/auth/reset-activity-pin', { password });
-      toast.success('PIN reset. Please set a new PIN.');
-      onSuccess();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Incorrect password');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="w-full max-w-xs mx-auto space-y-3 mt-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
-        Verify your account password to reset PIN
-      </p>
-      <div className="relative">
-        <input
-          type={showPw ? 'text' : 'password'}
-          value={password}
-          onChange={e => { setPassword(e.target.value); setError(''); }}
-          placeholder="Account password"
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder:text-gray-400"
-          autoFocus
-        />
-        <button type="button" onClick={() => setShowPw(v => !v)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-          {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-        </button>
-      </div>
-      {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-      <div className="flex gap-2">
-        <button type="button" onClick={onCancel}
-          className="flex-1 text-xs py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          Cancel
-        </button>
-        <button type="submit" disabled={loading || !password}
-          className="flex-1 text-xs py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50">
-          {loading ? 'Verifying…' : 'Reset PIN'}
-        </button>
-      </div>
-    </form>
-  );
-};
-
-// ── PinScreen ──
-const PinScreen = ({ title, subtitle, onComplete, isError, disabled, attemptsLeft, showForgot, onForgotPin }) => {
-  const [forgotOpen, setForgotOpen] = useState(false);
-
-  return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-6 py-12">
-      <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
-        <Lock size={28} className="text-primary-600 dark:text-primary-400" />
-      </div>
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">{subtitle}</p>
-      </div>
-      <PinInput onComplete={onComplete} error={isError} disabled={disabled || forgotOpen} />
-      {attemptsLeft !== null && attemptsLeft > 0 && attemptsLeft < MAX_ATTEMPTS && (
-        <p className="text-xs text-orange-500 dark:text-orange-400">
-          {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
-        </p>
-      )}
-      {showForgot && !forgotOpen && (
-        <button type="button" onClick={() => setForgotOpen(true)}
-          className="text-xs text-gray-400 dark:text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-          Forgot PIN?
-        </button>
-      )}
-      {forgotOpen && (
-        <ForgotPinForm
-          onSuccess={() => { setForgotOpen(false); onForgotPin?.(); }}
-          onCancel={() => setForgotOpen(false)}
-        />
-      )}
+const PinScreen = ({ title, subtitle, onComplete, isError, disabled, attemptsLeft, onForgot }) => (
+  <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8 py-12">
+    <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
+      <Lock size={28} className="text-primary-600 dark:text-primary-400" />
     </div>
-  );
-};
+    <div className="text-center">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">{subtitle}</p>
+    </div>
+    <PinInput onComplete={onComplete} error={isError} disabled={disabled} />
+    {attemptsLeft !== null && attemptsLeft > 0 && attemptsLeft < MAX_ATTEMPTS && (
+      <p className="text-xs text-orange-500 dark:text-orange-400">
+        {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining
+      </p>
+    )}
+    {onForgot && (
+      <button
+        type="button"
+        onClick={onForgot}
+        className="text-xs text-gray-400 dark:text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+      >
+        Forgot PIN?
+      </button>
+    )}
+  </div>
+);
 
 const ActivityLog = () => {
   const { user } = useAuth();
@@ -136,6 +71,12 @@ const ActivityLog = () => {
   const [pinAttempts, setPinAttempts] = useState(0);
   const [newPin, setNewPin] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Forgot PIN state
+  const [forgotPassword, setForgotPassword] = useState('');
+  const [forgotPasswordError, setForgotPasswordError] = useState('');
+  const [showForgotPw, setShowForgotPw] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const showPinError = useCallback(() => {
     setPinError(true);
@@ -189,13 +130,26 @@ const ActivityLog = () => {
     }
   };
 
-  const handleForgotPinSuccess = () => {
-    setPinAttempts(0);
-    setStage(STAGES.SET_PIN);
+  const handleForgotPin = async () => {
+    if (!forgotPassword) { setForgotPasswordError('Password is required'); return; }
+    setForgotLoading(true);
+    setForgotPasswordError('');
+    try {
+      await api.post('/activity-log/reset-pin', { password: forgotPassword });
+      toast.success('PIN reset. Set a new one.');
+      setForgotPassword('');
+      setPinAttempts(0);
+      setStage(STAGES.SET_PIN);
+    } catch (err) {
+      setForgotPasswordError(err.response?.data?.message || 'Incorrect password');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/settings')}
           className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -215,7 +169,7 @@ const ActivityLog = () => {
           isError={pinError}
           disabled={loading}
           attemptsLeft={null}
-          showForgot={false}
+          onForgot={null}
         />
       )}
 
@@ -227,7 +181,7 @@ const ActivityLog = () => {
           isError={pinError}
           disabled={loading}
           attemptsLeft={null}
-          showForgot={false}
+          onForgot={null}
         />
       )}
 
@@ -239,11 +193,73 @@ const ActivityLog = () => {
           isError={pinError}
           disabled={loading}
           attemptsLeft={MAX_ATTEMPTS - pinAttempts}
-          showForgot={true}
-          onForgotPin={handleForgotPinSuccess}
+          onForgot={() => setStage(STAGES.FORGOT_PIN)}
         />
       )}
 
+      {/* Forgot PIN screen */}
+      {stage === STAGES.FORGOT_PIN && (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center py-12">
+          <div className="w-full max-w-sm space-y-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Key size={28} className="text-orange-600 dark:text-orange-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Reset Activity PIN</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Enter your account password to verify your identity
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Password</label>
+              <div className="relative">
+                <input
+                  type={showForgotPw ? 'text' : 'password'}
+                  value={forgotPassword}
+                  onChange={e => { setForgotPassword(e.target.value); setForgotPasswordError(''); }}
+                  className={`w-full border rounded-lg px-3 py-2 pr-10 text-sm outline-none focus:ring-2 ring-offset-0
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                    ${forgotPasswordError
+                      ? 'border-red-500 focus:ring-red-400'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-primary-500'
+                    }`}
+                  placeholder="••••••••"
+                  onKeyDown={e => e.key === 'Enter' && handleForgotPin()}
+                />
+                <button type="button"
+                  onClick={() => setShowForgotPw(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+                  {showForgotPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {forgotPasswordError && (
+                <p className="text-xs text-red-500 mt-1">{forgotPasswordError}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setStage(STAGES.ENTER_PIN); setForgotPassword(''); setForgotPasswordError(''); }}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleForgotPin}
+                disabled={forgotLoading || !forgotPassword}
+                className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+              >
+                {forgotLoading ? 'Verifying…' : 'Reset PIN'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Activity Log */}
       {stage === STAGES.LOG && (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">

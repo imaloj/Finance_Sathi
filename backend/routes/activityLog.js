@@ -1,11 +1,21 @@
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
-import { setActivityPin, verifyActivityPin } from '../services/authService.js';
+import { setActivityPin, verifyActivityPin, resetActivityPin } from '../services/authService.js';
 import ActivityLog from '../models/ActivityLog.js';
 import { logActivity, reqMeta } from '../utils/activityLogger.js';
 
 const router = express.Router();
 router.use(authenticate);
+
+// Reset PIN using account password
+router.post('/reset-pin', async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ success: false, message: 'Password is required' });
+    await resetActivityPin(req.user._id, password);
+    res.status(200).json({ success: true, message: 'PIN reset. Set a new one.' });
+  } catch (error) { next(error); }
+});
 
 // Check if PIN is set
 router.get('/pin-status', async (req, res, next) => {
