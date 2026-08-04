@@ -1,9 +1,7 @@
 import { logger } from '../utils/logger.js';
 
 export const errorHandler = (err, req, res, next) => {
-  // ALWAYS print to terminal so developer sees the real error
-  console.error('🔥 BACKEND ERROR:', err.name, '-', err.message);
-  console.error(err.stack);
+  logger.error(`${err.name} - ${err.message}`, { stack: err.stack });
 
   let error = { ...err };
   error.message = err.message;

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logger } from '../utils/logger.js';
 
 const FROM = 'Budget Sathi <onboarding@resend.dev>';
 const APP_URL = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -11,12 +12,12 @@ const getResend = () => new Resend(process.env.RESEND_API_KEY);
 
 export const sendVerificationEmail = async (email, name, token) => {
   const link = `${APP_URL}/verify-email?token=${token}`;
-
-  await getResend().emails.send({
-    from: FROM,
-    to: email,
-    subject: 'Verify your Budget Sathi account',
-    html: `
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to: email,
+      subject: 'Verify your Budget Sathi account',
+      html: `
       <!DOCTYPE html>
       <html>
       <head><meta charset="UTF-8"></head>
@@ -39,18 +40,22 @@ export const sendVerificationEmail = async (email, name, token) => {
       </body>
       </html>
     `,
-  });
+    });
+  } catch (err) {
+    logger.error('sendVerificationEmail failed', { email, error: err.message });
+    throw err;
+  }
 };
 
 // MONTHLY REPORT EMAIL
 export const sendMonthlyReportEmail = async (email, name, month, year, pdfBuffer) => {
   const monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
-
-  await getResend().emails.send({
-    from: FROM,
-    to: email,
-    subject: `Your ${monthName} ${year} Financial Report — Budget Sathi`,
-    html: `
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to: email,
+      subject: `Your ${monthName} ${year} Financial Report — Budget Sathi`,
+      html: `
       <!DOCTYPE html>
       <html>
       <head><meta charset="UTF-8"></head>
@@ -76,23 +81,28 @@ export const sendMonthlyReportEmail = async (email, name, month, year, pdfBuffer
       </body>
       </html>
     `,
-    attachments: pdfBuffer ? [
-      {
-        filename: `BudgetSathi_${monthName}_${year}.pdf`,
-        content: Buffer.from(pdfBuffer).toString('base64'),
-      }
-    ] : [],
-  });
+      attachments: pdfBuffer ? [
+        {
+          filename: `BudgetSathi_${monthName}_${year}.pdf`,
+          content: Buffer.from(pdfBuffer).toString('base64'),
+        }
+      ] : [],
+    });
+  } catch (err) {
+    logger.error('sendMonthlyReportEmail failed', { email, error: err.message });
+    throw err;
+  }
 };
 
 // PASSWORD RESET
 export const sendPasswordResetEmail = async (email, name, token) => {
   const link = `${APP_URL}/reset-password?token=${token}`;
-  await getResend().emails.send({
-    from: FROM,
-    to: email,
-    subject: 'Reset your Budget Sathi password',
-    html: `
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to: email,
+      subject: 'Reset your Budget Sathi password',
+      html: `
       <!DOCTYPE html><html><head><meta charset="UTF-8"></head>
       <body style="font-family:'Segoe UI',sans-serif;background:#f9fafb;margin:0;padding:40px 20px;">
         <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:40px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
@@ -107,17 +117,22 @@ export const sendPasswordResetEmail = async (email, name, token) => {
         </div>
       </body></html>
     `,
-  });
+    });
+  } catch (err) {
+    logger.error('sendPasswordResetEmail failed', { email, error: err.message });
+    throw err;
+  }
 };
 
 // PASSWORD CHANGE NOTIFICATION
 
 export const sendPasswordChangedEmail = async (email, name) => {
-  await getResend().emails.send({
-    from: FROM,
-    to: email,
-    subject: 'Your Budget Sathi password was changed',
-    html: `
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to: email,
+      subject: 'Your Budget Sathi password was changed',
+      html: `
       <!DOCTYPE html>
       <html>
       <head><meta charset="UTF-8"></head>
@@ -139,5 +154,9 @@ export const sendPasswordChangedEmail = async (email, name) => {
       </body>
       </html>
     `,
-  });
+    });
+  } catch (err) {
+    logger.error('sendPasswordChangedEmail failed', { email, error: err.message });
+    throw err;
+  }
 };
