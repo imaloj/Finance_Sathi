@@ -2,6 +2,11 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
+import Transaction from '../models/Transaction.js';
+import AIReport from '../models/AIReport.js';
+import RecurringTransaction from '../models/RecurringTransaction.js';
+import ActivityLog from '../models/ActivityLog.js';
+import MonthlyBudget from '../models/MonthlyBudget.js';
 import { getRedis } from '../config/redis.js';
 import { getCurrencyFromCountry } from '../utils/currency.js';
 import { sendVerificationEmail, sendPasswordChangedEmail, sendPasswordResetEmail } from './emailService.js';
@@ -258,18 +263,17 @@ export const deleteAccount = async (userId, password) => {
   const isMatch = await user.comparePassword(password);
   if (!isMatch) throw Object.assign(new Error('Incorrect password'), { statusCode: 400 });
 
-  // Delete all user data
-  const mongoose = (await import('mongoose')).default;
-  const Transaction = (await import('../models/Transaction.js')).default;
-  const AIReport = (await import('../models/AIReport.js')).default;
-
+  // Delete all user data across every collection in parallel
   await Promise.all([
-    Transaction.deleteMany({ user: new mongoose.Types.ObjectId(userId) }),
-    AIReport.deleteMany({ user: new mongoose.Types.ObjectId(userId) }),
+    Transaction.deleteMany({ user: userId }),
+    AIReport.deleteMany({ user: userId }),
+    RecurringTransaction.deleteMany({ user: userId }),
+    ActivityLog.deleteMany({ user: userId }),
+    MonthlyBudget.deleteMany({ user: userId }),
     User.findByIdAndDelete(userId),
   ]);
 
-  // Clear Redis cache
+  // Clear all Redis keys associated with this user
   const redis = getRedis();
   const keys = await redis.keys(`*${userId}*`);
   if (keys.length > 0) await redis.del(...keys);

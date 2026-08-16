@@ -43,6 +43,9 @@ export const transactionValidators = {
     body('amount').optional().isFloat({ min: 0.01 }),
     body('description').optional().trim().isLength({ max: 200 })
   ],
+  delete: [
+    param('id').isMongoId().withMessage('Invalid transaction ID')
+  ],
   list: [
     query('month').optional().isInt({ min: 1, max: 12 }),
     query('year').optional().isInt({ min: 2000, max: 2100 }),

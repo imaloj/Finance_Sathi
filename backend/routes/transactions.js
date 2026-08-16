@@ -71,7 +71,7 @@ router.put('/:id', validate(transactionValidators.update), async (req, res, next
   } catch (error) { next(error); }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', validate(transactionValidators.delete), async (req, res, next) => {
   try {
     await transactionService.deleteTransaction(req.user._id, req.params.id);
     logActivity(req.user._id, 'transaction_deleted', `Deleted transaction ID: ${req.params.id}`, reqMeta(req));
