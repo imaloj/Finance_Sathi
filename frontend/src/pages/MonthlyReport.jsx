@@ -120,14 +120,6 @@ const MonthlyReport = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Page Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Financial Report</h2>
-          <p className="text-gray-500 dark:text-gray-400">Generate and download your monthly financial summary</p>
-        </div>
-      </div>
-
       {/* Controls */}
       <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap items-end gap-4">
         {/* Month */}

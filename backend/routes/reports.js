@@ -1,12 +1,21 @@
 import express from 'express';
+import { param } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
+import { validate } from '../middleware/validator.js';
 import { generateMonthlyReport } from '../services/aiService.js';
 import { generatePDF } from '../services/pdfService.js';
+import { generateAnnualReport } from '../services/annualReportService.js';
+import { generateAnnualPDF } from '../services/annualPdfService.js';
 import AIReport from '../models/AIReport.js';
+import AnnualReport from '../models/AnnualReport.js';
 import User from '../models/User.js';
 import Transaction from '../models/Transaction.js';
 import mongoose from 'mongoose';
 import { logActivity, reqMeta } from '../utils/activityLogger.js';
+
+const yearValidator = [
+  param('year').isInt({ min: 2000, max: 2100 }).withMessage('Invalid year')
+];
 
 const router = express.Router();
 router.use(authenticate);
@@ -122,6 +131,79 @@ router.get('/pdf/:year/:month', async (req, res, next) => {
 
     res.send(pdfBuffer);
     
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ── Annual report routes ──────────────────────────────────────────────────────
+
+// Generate (or regenerate) annual AI report
+router.post('/annual/:year', validate(yearValidator), async (req, res, next) => {
+  try {
+    const { year } = req.params;
+    const report = await generateAnnualReport(req.user._id, parseInt(year));
+    logActivity(req.user._id, 'ai_report_generated',
+      `Annual AI report generated for ${year}`,
+      reqMeta(req)
+    );
+    res.status(200).json({ success: true, data: report });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Fetch existing annual report
+router.get('/annual/:year', validate(yearValidator), async (req, res, next) => {
+  try {
+    const { year } = req.params;
+    const report = await AnnualReport.findOne({
+      user: req.user._id,
+      year: parseInt(year)
+    });
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: `No annual report found for ${year}. Generate one first.`
+      });
+    }
+
+    res.status(200).json({ success: true, data: report });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Download annual PDF report
+router.get('/annual/pdf/:year', validate(yearValidator), async (req, res, next) => {
+  try {
+    const { year } = req.params;
+    const userId   = req.user._id;
+
+    // Get or generate the annual report
+    let report = await AnnualReport.findOne({ user: userId, year: parseInt(year) });
+    if (!report) {
+      report = await generateAnnualReport(userId, parseInt(year));
+    }
+
+    const user = await User.findById(userId);
+
+    const pdfBuffer = await generateAnnualPDF({ user, report, year: parseInt(year) });
+
+    const safeName = user?.name?.replace(/\s+/g, '_') || 'User';
+    const filename = `BudgetSathi_Annual_Report_${year}_${safeName}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    logActivity(req.user._id, 'report_downloaded',
+      `Annual PDF report downloaded for ${year}`,
+      reqMeta(req)
+    );
+
+    res.send(pdfBuffer);
   } catch (error) {
     next(error);
   }
